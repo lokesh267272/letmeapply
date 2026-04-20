@@ -58,6 +58,11 @@ const GEMINI_MODEL = 'gemini-2.0-flash'; // change to 'gemini-1.5-pro', etc.
 ```
 letmeapply-extension/
 ├── manifest.json          ← Extension config (Manifest V3)
+├── backend/               ← Local Puppeteer PDF backend
+│   ├── package.json
+│   ├── server.js
+│   ├── renderResume.js
+│   └── README.md
 ├── popup/
 │   ├── popup.html         ← Popup UI
 │   ├── popup.css          ← Styles
@@ -73,6 +78,20 @@ letmeapply-extension/
     ├── icon48.png
     └── icon128.png
 ```
+
+## 🧾 Local PDF Backend
+
+If you want direct PDF downloads without the browser print dialog, a local Puppeteer backend is included in `backend/`.
+
+Run it locally:
+
+```bash
+cd backend
+npm install
+npm start
+```
+
+It starts on `http://127.0.0.1:3001` and can generate a resume PDF from the structured `resumeBuilder` data.
 
 ## 🔒 Privacy
 

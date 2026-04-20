@@ -5,6 +5,7 @@
   "description": "AI-powered job application assistant. Extract job details, tailor resumes, generate cover letters, and check ATS scores using Gemini AI.",
   "permissions": [
     "activeTab",
+    "downloads",
     "storage",
     "scripting",
     "tabs"

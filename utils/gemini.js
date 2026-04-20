@@ -75,6 +75,62 @@ Return ONLY the tailored resume text — no commentary, no markdown fences.`;
 }
 
 /**
+ * Tailor a structured resume for a specific job and return structured JSON
+ */
+async function tailorResumeStructured(
+  { jobTitle, company, jobDescription, resumeData, candidateName },
+  apiKey,
+) {
+  const prompt = `You are an expert resume writer and ATS optimization specialist.
+
+CANDIDATE NAME: ${candidateName || "Candidate"}
+
+JOB DETAILS:
+Title: ${jobTitle || "Not specified"}
+Company: ${company || "Not specified"}
+Description:
+${jobDescription}
+
+CURRENT STRUCTURED RESUME JSON:
+${JSON.stringify(resumeData, null, 2)}
+
+TASK:
+Return an ATS-friendly, job-tailored version of this resume in the EXACT SAME JSON SHAPE.
+
+STRICT RULES:
+1. Return ONLY valid JSON. No markdown, no commentary, no code fences.
+2. Preserve the exact top-level schema and nested field names from the input.
+3. Keep all experience, education, projects, certifications, achievements, languages, and publications truthful.
+4. Do NOT invent new companies, roles, degrees, dates, achievements, projects, certifications, or metrics.
+5. You MAY improve the summary, reorder bullet points, rewrite bullet wording, and emphasize the most relevant skills.
+6. Keep personal contact fields unchanged unless normalization is needed for formatting consistency.
+7. Preserve links, dates, company names, school names, and project names unless light cleanup is needed.
+8. Make bullets stronger, more concise, and more relevant to the job description.
+9. Integrate important keywords from the job description naturally and honestly.
+10. Keep the resume concise and ATS friendly. No tables, no decorative labels, no fake information.
+11. If a section is empty in the input, keep it empty in the output.
+12. Bullets must remain arrays of strings.
+
+QUALITY GOALS:
+- Professional summary should be targeted to this role
+- Experience bullets should lead with the most relevant achievements
+- Skills should prioritize the tools and concepts that best match the job
+- Wording should be clear, strong, and recruiter-friendly
+`;
+
+  const raw = await callGemini(prompt, apiKey, { temperature: 0.3, maxOutputTokens: 4096 });
+  const cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error("Could not parse tailored resume structure. Please try again.");
+  }
+}
+
+/**
  * Generate personalized cover letter
  */
 async function generateCoverLetter(

@@ -7,6 +7,9 @@ let apiKey = '';
 
 // ── DOM REFS ──
 const $ = id => document.getElementById(id);
+const storageGet = keys => new Promise(resolve => chrome.storage.local.get(keys, resolve));
+const storageSet = items => new Promise(resolve => chrome.storage.local.set(items, resolve));
+const TAILORED_PREVIEW_KEY = 'tailoredResumePreview';
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -14,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
   setupSettings();
   setupActions();
+  await restoreTailoredResumeState();
   setupResumeBuilder();
   detectJob();
 });
@@ -38,6 +42,75 @@ async function loadProfile() {
       resolve();
     });
   });
+}
+
+function hasResumeBuilderData(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (data.summary) return true;
+  if (Object.values(data.personal || {}).some(Boolean)) return true;
+  if ((data.experience || []).length) return true;
+  if ((data.education || []).length) return true;
+  if ((data.projects || []).length) return true;
+  if ((data.certifications || []).length) return true;
+  if ((data.achievements || []).length) return true;
+  if ((data.languages || []).length) return true;
+  if ((data.publications || []).length) return true;
+  return Object.values(data.skills || {}).some(list => Array.isArray(list) && list.length);
+}
+
+function sanitizeFileNamePart(value, fallback = 'Resume') {
+  const cleaned = String(value || '')
+    .replace(/[<>:"/\\|?*]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || fallback;
+}
+
+function buildTailoredResumeFileName(resumeData) {
+  const fullName = [
+    resumeData?.personal?.firstName || profile.name || '',
+    resumeData?.personal?.lastName || ''
+  ].join(' ').trim() || profile.name || 'Candidate';
+
+  const company = sanitizeFileNamePart(jobData?.company, '');
+  const role = sanitizeFileNamePart(jobData?.title, 'Tailored Resume');
+  const parts = [sanitizeFileNamePart(fullName, 'Candidate'), role];
+  if (company) parts.push(company);
+  return `${parts.join(' - ')}.pdf`;
+}
+
+async function getOrCreateResumeBuilderData() {
+  const data = await storageGet(['resumeBuilder']);
+  if (hasResumeBuilderData(data.resumeBuilder)) {
+    return data.resumeBuilder;
+  }
+
+  const parsed = await parseResumeStructured(profile.resume, apiKey);
+  await storageSet({ resumeBuilder: parsed });
+  renderBuilderFields(parsed);
+  $('builderFields')?.classList.remove('hidden');
+  return parsed;
+}
+
+function renderTailoredResumeReady(previewState) {
+  const companyText = previewState?.job?.company ? ` at ${previewState.job.company}` : '';
+  const titleText = previewState?.job?.title || 'this role';
+  $('resumeContent').textContent = `Tailored resume ready for ${titleText}${companyText}. Open the preview to review the final layout and download the PDF.`;
+  $('resumeResult').classList.remove('hidden');
+  $('openResumePreviewBtn')?.classList.remove('hidden');
+}
+
+async function openTailoredResumePreview() {
+  await chrome.tabs.create({
+    url: chrome.runtime.getURL('preview/resume-preview.html')
+  });
+}
+
+async function restoreTailoredResumeState() {
+  const data = await storageGet([TAILORED_PREVIEW_KEY]);
+  if (data[TAILORED_PREVIEW_KEY]?.resumeData) {
+    renderTailoredResumeReady(data[TAILORED_PREVIEW_KEY]);
+  }
 }
 
 // ── TAB SWITCHING ──
@@ -178,9 +251,16 @@ function setupActions() {
   $('tailorResumeBtn').addEventListener('click', () => handleTailorResume());
   $('genCoverBtn').addEventListener('click', () => handleCoverLetter());
   $('checkATSBtn').addEventListener('click', () => handleATSScore());
+  $('openResumePreviewBtn')?.addEventListener('click', () => openTailoredResumePreview());
+
+  const legacyResumeCopyBtn = document.querySelector('#resumeResult .copy-btn[data-target="resumeContent"]');
+  if (legacyResumeCopyBtn) legacyResumeCopyBtn.classList.add('hidden');
+
+  const resumeResultLabel = document.querySelector('#resumeResult .result-label');
+  if (resumeResultLabel) resumeResultLabel.textContent = 'Tailored Resume Ready';
 
   // Copy buttons
-  document.querySelectorAll('.copy-btn').forEach(btn => {
+  document.querySelectorAll('.copy-btn[data-target]').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.dataset.target;
       const text = $(targetId)?.textContent || '';
@@ -223,18 +303,37 @@ async function handleTailorResume() {
   btn.disabled = true;
   $('resumeLoading').classList.remove('hidden');
   $('resumeResult').classList.add('hidden');
+  $('openResumePreviewBtn')?.classList.add('hidden');
 
   try {
-    const result = await tailorResume({
+    const resumeBuilderData = await getOrCreateResumeBuilderData();
+    const tailoredResume = await tailorResumeStructured({
       jobTitle: jobData.title,
       company: jobData.company,
       jobDescription: jobData.description,
-      baseResume: profile.resume,
+      resumeData: resumeBuilderData,
       candidateName: profile.name
     }, apiKey);
 
-    $('resumeContent').textContent = result;
-    $('resumeResult').classList.remove('hidden');
+    const previewState = {
+      generatedAt: Date.now(),
+      fileName: buildTailoredResumeFileName(tailoredResume),
+      job: {
+        title: jobData.title || '',
+        company: jobData.company || '',
+        location: jobData.location || '',
+        platform: jobData.platform || ''
+      },
+      resumeData: tailoredResume
+    };
+
+    await storageSet({
+      [TAILORED_PREVIEW_KEY]: previewState,
+      tailoredResume: tailoredResume
+    });
+
+    renderTailoredResumeReady(previewState);
+    await openTailoredResumePreview();
     showToast('✅ Resume tailored successfully!');
   } catch (err) {
     showToast(`❌ ${err.message}`);

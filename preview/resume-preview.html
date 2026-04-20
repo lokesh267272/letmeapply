@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tailored Resume Preview</title>
+  <link rel="stylesheet" href="./resume-preview.css" />
+</head>
+<body>
+  <div class="preview-shell">
+    <header class="preview-toolbar">
+      <div class="preview-heading">
+        <p class="eyebrow">LetMeApply</p>
+        <h1>Tailored Resume Preview</h1>
+        <p class="preview-meta" id="previewMeta">Loading your tailored resume...</p>
+      </div>
+
+      <div class="preview-actions">
+        <button class="btn btn-primary" type="button" id="downloadPdfBtn">Download PDF</button>
+        <button class="btn btn-secondary" type="button" id="refreshPreviewBtn">Refresh</button>
+        <p class="download-status" id="downloadStatus" aria-live="polite"></p>
+      </div>
+    </header>
+
+    <section class="empty-state hidden" id="emptyState">
+      <div class="empty-card">
+        <h2>No tailored resume found</h2>
+        <p>Go back to the extension popup, click <strong>Tailor My Resume</strong>, and the latest tailored preview will appear here.</p>
+      </div>
+    </section>
+
+    <div class="resume-stage" id="resumeStage">
+      <div id="resumeMount"></div>
+    </div>
+  </div>
+
+  <script src="../utils/resumeRenderer.js"></script>
+  <script src="./resume-preview.js"></script>
+</body>
+</html>
