@@ -83,10 +83,13 @@
         <span class="tab-icon">📄</span> Resume
       </button>
       <button class="tab" data-tab="cover">
-        <span class="tab-icon">✉️</span> Cover Letter
+        <span class="tab-icon">✉️</span> Cover
       </button>
       <button class="tab" data-tab="ats">
-        <span class="tab-icon">📊</span> ATS Score
+        <span class="tab-icon">📊</span> ATS
+      </button>
+      <button class="tab" data-tab="builder">
+        <span class="tab-icon">🏗️</span> Build
       </button>
     </div>
 
@@ -212,6 +215,124 @@
           </div>
           <div class="result-text" id="atsSuggestions"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Tab: Resume Builder -->
+    <div class="tab-pane hidden" id="tab-builder">
+      <div class="action-card">
+        <div class="action-icon">🏗️</div>
+        <div class="action-info">
+          <div class="action-title">Resume Builder</div>
+          <div class="action-desc">AI parses your resume into structured, editable fields automatically.</div>
+        </div>
+      </div>
+      <button class="btn btn-primary full-width mt-12" id="parseResumeBtn">
+        🤖 Parse My Resume into Fields
+      </button>
+      <div class="ai-loading hidden" id="builderLoading">
+        <div class="ai-spinner"></div>
+        <span>Parsing resume into structured fields...</span>
+      </div>
+
+      <div id="builderFields" class="hidden">
+
+        <!-- Personal Information -->
+        <div class="builder-section">
+          <div class="builder-section-title">👤 Personal Information</div>
+          <div class="form-row-2">
+            <div class="form-group"><label class="form-label">First Name</label><input type="text" id="b-firstName" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Last Name</label><input type="text" id="b-lastName" class="form-input" /></div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group"><label class="form-label">Email</label><input type="email" id="b-email" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Phone</label><input type="text" id="b-phone" class="form-input" /></div>
+          </div>
+          <div class="form-group"><label class="form-label">Location</label><input type="text" id="b-location" class="form-input" /></div>
+          <div class="form-group"><label class="form-label">LinkedIn URL</label><input type="text" id="b-linkedin" class="form-input" /></div>
+          <div class="form-group"><label class="form-label">GitHub URL</label><input type="text" id="b-github" class="form-input" /></div>
+        </div>
+
+        <!-- Summary -->
+        <div class="builder-section">
+          <div class="builder-section-title">📝 Summary</div>
+          <textarea id="b-summary" class="form-textarea builder-textarea"></textarea>
+        </div>
+
+        <!-- Work Experience -->
+        <div class="builder-section">
+          <div class="builder-section-title-row">
+            <div class="builder-section-title">💼 Work Experience</div>
+            <button class="add-entry-btn" id="addExpBtn">+ Add</button>
+          </div>
+          <div id="b-experience-list"></div>
+        </div>
+
+        <!-- Education -->
+        <div class="builder-section">
+          <div class="builder-section-title-row">
+            <div class="builder-section-title">🎓 Education</div>
+            <button class="add-entry-btn" id="addEduBtn">+ Add</button>
+          </div>
+          <div id="b-education-list"></div>
+        </div>
+
+        <!-- Skills (categorized) -->
+        <div class="builder-section">
+          <div class="builder-section-title">🛠️ Skills</div>
+          <div id="b-skills-container"></div>
+        </div>
+
+        <!-- Projects -->
+        <div class="builder-section">
+          <div class="builder-section-title-row">
+            <div class="builder-section-title">🚀 Projects</div>
+            <button class="add-entry-btn" id="addProjectBtn">+ Add</button>
+          </div>
+          <div id="b-projects-list"></div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="builder-section">
+          <div class="builder-section-title">📋 Additional Information</div>
+
+          <div class="additional-subsection">
+            <div class="additional-title-row">
+              <span class="additional-label">Certifications</span>
+              <button class="add-entry-btn" id="addCertBtn">+ Add</button>
+            </div>
+            <div id="b-cert-list"></div>
+          </div>
+
+          <div class="additional-subsection">
+            <div class="additional-title-row">
+              <span class="additional-label">Achievements</span>
+              <button class="add-entry-btn" id="addAchievementBtn">+ Add</button>
+            </div>
+            <div id="b-achievement-list"></div>
+          </div>
+
+          <div class="additional-subsection">
+            <div class="additional-title-row">
+              <span class="additional-label">Languages</span>
+              <button class="add-entry-btn" id="addLanguageBtn">+ Add</button>
+            </div>
+            <div id="b-language-list"></div>
+          </div>
+
+          <div class="additional-subsection">
+            <div class="additional-title-row">
+              <span class="additional-label">Publications</span>
+              <button class="add-entry-btn" id="addPublicationBtn">+ Add</button>
+            </div>
+            <div id="b-publication-list"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary full-width mt-12" id="saveBuilderBtn">
+          💾 Save Resume Fields
+        </button>
+
       </div>
     </div>
 

@@ -7,7 +7,7 @@ const GEMINI_BASE = `https://generativelanguage.googleapis.com/v1beta/models/${G
 /**
  * Core Gemini API call
  */
-async function callGemini(prompt, apiKey) {
+async function callGemini(prompt, apiKey, config = {}) {
   const response = await fetch(GEMINI_BASE, {
     method: "POST",
     headers: {
@@ -17,10 +17,10 @@ async function callGemini(prompt, apiKey) {
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.7,
+        temperature: config.temperature ?? 0.7,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 2048,
+        maxOutputTokens: config.maxOutputTokens ?? 2048,
       },
     }),
   });
@@ -123,6 +123,107 @@ Return ONLY the cover letter — no commentary, no markdown fences.`;
 
   return await callGemini(prompt, apiKey);
 }
+
+/**
+ * Parse raw resume text into structured JSON fields
+ */
+async function parseResumeStructured(resumeText, apiKey) {
+  const prompt = `You are an expert resume parser. Extract ALL information from the resume text below into this EXACT JSON structure. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+
+RESUME TEXT:
+${resumeText}
+
+JSON STRUCTURE TO FILL:
+{
+  "personal": {
+    "firstName": "",
+    "lastName": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "linkedin": "",
+    "github": ""
+  },
+  "summary": "",
+  "experience": [
+    {
+      "title": "",
+      "company": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "bullets": ["bullet point 1", "bullet point 2"]
+    }
+  ],
+  "education": [
+    {
+      "school": "",
+      "degree": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "cgpa": "",
+      "bullets": []
+    }
+  ],
+  "skills": {
+    "programmingLanguages": [],
+    "csConcepts": [],
+    "webDevelopment": [],
+    "databases": [],
+    "cloudPlatforms": [],
+    "mlAI": [],
+    "mobileDevelopment": []
+  },
+  "projects": [
+    {
+      "name": "",
+      "organization": "",
+      "link": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "bullets": ["bullet point 1"]
+    }
+  ],
+  "certifications": ["certification name here"],
+  "achievements": ["achievement text here"],
+  "languages": [
+    { "name": "", "proficiency": "Professional" }
+  ],
+  "publications": ["publication text here"]
+}
+
+STRICT RULES:
+1. Extract ALL jobs, ALL education entries, ALL projects — never skip entries
+2. Bullets must be an array of clean strings — no bullet prefix characters
+3. Categorize each skill into the best-fitting category:
+   - programmingLanguages: Python, Java, C++, JavaScript, TypeScript, Go, etc.
+   - csConcepts: Data Structures, Algorithms, OOP, OS, DBMS, Networking, etc.
+   - webDevelopment: React, Next.js, Node.js, HTML, CSS, Django, Flask, Spring, etc.
+   - databases: MySQL, MongoDB, PostgreSQL, Redis, Firebase, etc.
+   - cloudPlatforms: AWS, Azure, GCP, Docker, Kubernetes, Linux, Git, etc.
+   - mlAI: TensorFlow, PyTorch, scikit-learn, NLP, Computer Vision, etc.
+   - mobileDevelopment: React Native, Flutter, Android, iOS, Swift, Kotlin, etc.
+4. Dates format: "MMM YYYY" e.g. "Jan 2022". If currently active, set current: true and leave endDate as ""
+5. Language proficiency: use only "Native", "Professional", or "Basic"
+6. If a field is not found, use "" for strings, [] for arrays, false for booleans
+7. certifications, achievements, publications are plain string arrays`;
+
+  const raw = await callGemini(prompt, apiKey, { temperature: 0.1, maxOutputTokens: 4096 });
+  const cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error("Could not parse resume structure. Please try again.");
+  }
+}
+
 
 /**
  * Check ATS score — returns parsed JSON

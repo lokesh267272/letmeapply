@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume Parser Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0D0D1A;
+      color: #F0F0FF;
+      padding: 24px;
+      min-height: 100vh;
+    }
+    h1 { color: #A78BFA; margin-bottom: 6px; font-size: 20px; }
+    .subtitle { color: #9B9BC0; font-size: 13px; margin-bottom: 20px; }
+    .row { display: flex; gap: 16px; }
+    .col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    label { font-size: 12px; color: #9B9BC0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    textarea, input {
+      background: #131324;
+      border: 1px solid #252540;
+      border-radius: 8px;
+      color: #F0F0FF;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 12.5px;
+      outline: none;
+      width: 100%;
+    }
+    textarea:focus, input:focus { border-color: #7C6FFF; }
+    #resumeText { height: 340px; resize: vertical; line-height: 1.6; }
+    button {
+      background: linear-gradient(135deg, #7C6FFF, #A78BFA);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status {
+      font-size: 12.5px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: none;
+    }
+    #status.loading { display: block; background: rgba(124,111,255,0.12); border: 1px solid rgba(124,111,255,0.3); color: #A78BFA; }
+    #status.error   { display: block; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #F87171; }
+    #status.ok      { display: block; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #34D399; }
+    #output {
+      background: #131324;
+      border: 1px solid #252540;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      color: #9B9BC0;
+      font-family: 'Courier New', monospace;
+      flex: 1;
+      min-height: 400px;
+    }
+    .section-check {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #131324;
+      border: 1px solid #252540;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .check-icon { font-size: 14px; }
+    .check-name { flex: 1; color: #9B9BC0; }
+    .check-count { font-size: 11px; color: #5A5A80; }
+  </style>
+</head>
+<body>
+
+<h1>🧪 Resume Parser Test</h1>
+<p class="subtitle">Tests parseResumeStructured() — verifies all 7 sections parse correctly from your resume text.</p>
+
+<div class="row" style="margin-top:16px">
+
+  <!-- LEFT: Inputs -->
+  <div class="col" style="max-width:420px">
+    <div>
+      <label>Gemini API Key</label>
+      <input type="password" id="apiKey" placeholder="AIzaSy..." value="AIzaSyAFtHaIiNWVcB54uRaonfGiwZu4X3XrpFo" style="margin-top:5px" />
+    </div>
+    <div>
+      <label style="display:block;margin-bottom:5px">Resume Text (paste your full resume)</label>
+      <textarea id="resumeText" placeholder="Paste your full resume text here...">Lokesh Kumar
+lokesh@example.com | +91 9876543210 | Hyderabad, India
+linkedin.com/in/lokesh-kumar | github.com/lokesh267272
+
+SUMMARY
+Motivated B.Tech Computer Science student with hands-on experience in full-stack web development and machine learning. Skilled in React, Node.js, Python, and cloud deployment. Passionate about building scalable applications.
+
+WORK EXPERIENCE
+
+Software Development Intern — TechCorp Solutions, Hyderabad
+June 2023 – August 2023
+• Built REST APIs using Node.js and Express serving 10k+ daily requests
+• Reduced page load time by 40% by implementing lazy loading and code splitting in React
+• Integrated Firebase Authentication for secure user login across web and mobile
+
+Web Development Intern — StartupXYZ, Remote
+January 2023 – March 2023
+• Developed responsive UI components in React for a SaaS dashboard used by 500+ clients
+• Collaborated with backend team to integrate GraphQL APIs
+
+EDUCATION
+
+B.Tech Computer Science & Engineering — JNTU Hyderabad
+August 2020 – May 2024
+CGPA: 8.6
+• Relevant coursework: Data Structures, Algorithms, DBMS, Operating Systems, Computer Networks
+
+SKILLS
+Programming: Python, JavaScript, TypeScript, Java, C++
+Web: React, Next.js, Node.js, Express, HTML5, CSS3, Tailwind CSS, Django
+Databases: MySQL, MongoDB, PostgreSQL, Firebase, Redis
+Cloud: AWS EC2/S3, Docker, Kubernetes, Linux, Git, GitHub Actions
+ML/AI: TensorFlow, scikit-learn, Pandas, NumPy, NLP basics
+Mobile: React Native, Flutter basics
+CS: Data Structures, Algorithms, OOP, OS, DBMS, Computer Networks
+
+PROJECTS
+
+E-Commerce Platform — Personal Project
+January 2024 – March 2024
+github.com/lokesh267272/ecommerce
+• Built a full-stack e-commerce app with React frontend, Node.js/Express backend, MongoDB
+• Implemented JWT authentication, Stripe payment integration, and order management
+• Deployed on AWS EC2 with Docker containerization
+
+ML Sentiment Analyzer — Academic Project (JNTU)
+September 2023 – November 2023
+• Trained a BERT-based sentiment classification model achieving 91% accuracy on Amazon reviews
+• Built a Flask API serving predictions; integrated with React dashboard
+• Dataset: 50k reviews; used scikit-learn pipeline for preprocessing
+
+CERTIFICATIONS
+AWS Certified Cloud Practitioner
+Google Associate Android Developer
+
+ACHIEVEMENTS
+Winner — HackHyderabad 2023 (200+ teams)
+Top 10 — Smart India Hackathon 2023
+
+LANGUAGES
+English — Professional
+Telugu — Native
+Hindi — Professional
+
+PUBLICATIONS
+"Sentiment Analysis on Product Reviews using BERT" — IJCSE Vol.12, 2023</textarea>
+    </div>
+    <button id="parseBtn" onclick="runTest()">🤖 Run Parser Test</button>
+    <div id="status"></div>
+    <div class="section-check" id="sectionCheck" style="display:none">
+      <div style="font-size:11px;font-weight:700;color:#5A5A80;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Section Validation</div>
+      <div class="check-row"><span class="check-icon" id="c-personal">⬜</span><span class="check-name">Personal Info</span><span class="check-count" id="cc-personal"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-summary">⬜</span><span class="check-name">Summary</span><span class="check-count" id="cc-summary"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-experience">⬜</span><span class="check-name">Work Experience</span><span class="check-count" id="cc-experience"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-education">⬜</span><span class="check-name">Education</span><span class="check-count" id="cc-education"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-skills">⬜</span><span class="check-name">Skills (7 categories)</span><span class="check-count" id="cc-skills"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-projects">⬜</span><span class="check-name">Projects</span><span class="check-count" id="cc-projects"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-certifications">⬜</span><span class="check-name">Certifications</span><span class="check-count" id="cc-certifications"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-achievements">⬜</span><span class="check-name">Achievements</span><span class="check-count" id="cc-achievements"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-languages">⬜</span><span class="check-name">Languages</span><span class="check-count" id="cc-languages"></span></div>
+      <div class="check-row"><span class="check-icon" id="c-publications">⬜</span><span class="check-name">Publications</span><span class="check-count" id="cc-publications"></span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Output -->
+  <div class="col">
+    <label>Parsed JSON Response</label>
+    <pre id="output">// Run the test to see parsed output here...</pre>
+  </div>
+
+</div>
+
+<script>
+const GEMINI_MODEL = 'gemini-flash-latest';
+const GEMINI_BASE  = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+async function callGemini(prompt, apiKey) {
+  const response = await fetch(GEMINI_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-goog-api-key': apiKey },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 4096 }
+    })
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini returned empty response');
+  return text.trim();
+}
+
+async function parseResumeStructured(resumeText, apiKey) {
+  const prompt = `You are an expert resume parser. Extract ALL information from the resume text below into this EXACT JSON structure. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+
+RESUME TEXT:
+${resumeText}
+
+JSON STRUCTURE TO FILL:
+{
+  "personal": {
+    "firstName": "",
+    "lastName": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "linkedin": "",
+    "github": ""
+  },
+  "summary": "",
+  "experience": [
+    {
+      "title": "",
+      "company": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "bullets": ["bullet point 1", "bullet point 2"]
+    }
+  ],
+  "education": [
+    {
+      "school": "",
+      "degree": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "cgpa": "",
+      "bullets": []
+    }
+  ],
+  "skills": {
+    "programmingLanguages": [],
+    "csConcepts": [],
+    "webDevelopment": [],
+    "databases": [],
+    "cloudPlatforms": [],
+    "mlAI": [],
+    "mobileDevelopment": []
+  },
+  "projects": [
+    {
+      "name": "",
+      "organization": "",
+      "link": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "bullets": ["bullet point 1"]
+    }
+  ],
+  "certifications": ["certification name here"],
+  "achievements": ["achievement text here"],
+  "languages": [
+    { "name": "", "proficiency": "Professional" }
+  ],
+  "publications": ["publication text here"]
+}
+
+STRICT RULES:
+1. Extract ALL jobs, ALL education entries, ALL projects — never skip entries
+2. Bullets must be an array of clean strings — no bullet prefix characters
+3. Categorize each skill into the best-fitting category:
+   - programmingLanguages: Python, Java, C++, JavaScript, TypeScript, Go, etc.
+   - csConcepts: Data Structures, Algorithms, OOP, OS, DBMS, Networking, etc.
+   - webDevelopment: React, Next.js, Node.js, HTML, CSS, Django, Flask, Spring, etc.
+   - databases: MySQL, MongoDB, PostgreSQL, Redis, Firebase, etc.
+   - cloudPlatforms: AWS, Azure, GCP, Docker, Kubernetes, Linux, Git, etc.
+   - mlAI: TensorFlow, PyTorch, scikit-learn, NLP, Computer Vision, etc.
+   - mobileDevelopment: React Native, Flutter, Android, iOS, Swift, Kotlin, etc.
+4. Dates format: "MMM YYYY" e.g. "Jan 2022". If currently active, set current: true and leave endDate as ""
+5. Language proficiency: use only "Native", "Professional", or "Basic"
+6. If a field is not found, use "" for strings, [] for arrays, false for booleans
+7. certifications, achievements, publications are plain string arrays`;
+
+  const raw     = await callGemini(prompt, apiKey);
+  const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error('JSON parse failed. Raw response:\n' + raw);
+  }
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className = type;
+  el.textContent = msg;
+}
+
+function validate(parsed) {
+  const checks = {
+    personal:      () => parsed.personal?.firstName || parsed.personal?.email,
+    summary:       () => parsed.summary?.length > 0,
+    experience:    () => Array.isArray(parsed.experience) && parsed.experience.length > 0,
+    education:     () => Array.isArray(parsed.education) && parsed.education.length > 0,
+    skills:        () => parsed.skills && Object.keys(parsed.skills).length === 7,
+    projects:      () => Array.isArray(parsed.projects) && parsed.projects.length > 0,
+    certifications:() => Array.isArray(parsed.certifications) && parsed.certifications.length > 0,
+    achievements:  () => Array.isArray(parsed.achievements) && parsed.achievements.length > 0,
+    languages:     () => Array.isArray(parsed.languages) && parsed.languages.length > 0,
+    publications:  () => Array.isArray(parsed.publications) && parsed.publications.length > 0,
+  };
+  const counts = {
+    personal:      () => Object.values(parsed.personal || {}).filter(v => v).length + ' fields filled',
+    summary:       () => parsed.summary?.length + ' chars',
+    experience:    () => parsed.experience?.length + ' entries, bullets: ' + (parsed.experience?.[0]?.bullets?.length || 0),
+    education:     () => parsed.education?.length + ' entries',
+    skills:        () => Object.entries(parsed.skills || {}).map(([k,v]) => `${k.slice(0,4)}:${v.length}`).join(' '),
+    projects:      () => parsed.projects?.length + ' entries',
+    certifications:() => parsed.certifications?.length + ' items',
+    achievements:  () => parsed.achievements?.length + ' items',
+    languages:     () => parsed.languages?.map(l => `${l.name}(${l.proficiency})`).join(', '),
+    publications:  () => parsed.publications?.length + ' items',
+  };
+
+  document.getElementById('sectionCheck').style.display = 'flex';
+  Object.keys(checks).forEach(key => {
+    let ok = false;
+    try { ok = !!checks[key](); } catch(_) {}
+    document.getElementById(`c-${key}`).textContent  = ok ? '✅' : '❌';
+    document.getElementById(`cc-${key}`).textContent = ok ? counts[key]() : 'missing / empty';
+  });
+}
+
+async function runTest() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const resume = document.getElementById('resumeText').value.trim();
+  const btn    = document.getElementById('parseBtn');
+  const output = document.getElementById('output');
+
+  if (!apiKey) { setStatus('error', '❌ Enter your Gemini API key'); return; }
+  if (!resume) { setStatus('error', '❌ Paste a resume first'); return; }
+
+  btn.disabled = true;
+  output.textContent = '// Calling Gemini API...';
+  setStatus('loading', '⏳ Parsing resume with Gemini — please wait ~5-10s...');
+  document.getElementById('sectionCheck').style.display = 'none';
+
+  try {
+    const parsed = await parseResumeStructured(resume, apiKey);
+    output.textContent = JSON.stringify(parsed, null, 2);
+    setStatus('ok', '✅ Parsed successfully! Check section validation below.');
+    validate(parsed);
+  } catch (err) {
+    output.textContent = '// ERROR:\n' + err.message;
+    setStatus('error', '❌ ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

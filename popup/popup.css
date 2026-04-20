@@ -710,6 +710,311 @@ html, body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* ── RESUME BUILDER ── */
+.builder-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.builder-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--accent2);
+  margin-bottom: 2px;
+}
+
+.builder-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-entry-btn {
+  background: var(--accent-glow);
+  border: 1px solid rgba(124,111,255,0.3);
+  color: var(--accent2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.add-entry-btn:hover { background: rgba(124,111,255,0.3); }
+
+.builder-entry {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.entry-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.remove-entry-btn {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.25);
+  color: var(--red);
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.remove-entry-btn:hover { background: rgba(248,113,113,0.2); }
+
+.builder-textarea {
+  min-height: 72px;
+  max-height: 120px;
+}
+
+/* Two-column row */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* Bullet list */
+.bullet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.bullet-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.bullet-row .form-input { flex: 1; }
+
+.remove-bullet-btn {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.25);
+  color: var(--red);
+  width: 26px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.remove-bullet-btn:hover { background: rgba(248,113,113,0.2); }
+
+.add-bullet-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--text3);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.add-bullet-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+/* Skill categories */
+.skill-category { margin-bottom: 10px; }
+
+.skill-cat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.skill-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 22px;
+  margin-bottom: 6px;
+}
+
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(124,111,255,0.3);
+  border-radius: 20px;
+  padding: 2px 8px 2px 10px;
+  font-size: 11px;
+  color: var(--accent2);
+}
+
+.skill-chip-text { font-weight: 500; }
+
+.skill-chip-remove {
+  background: none;
+  border: none;
+  color: var(--accent2);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+  font-family: inherit;
+}
+
+.skill-chip-remove:hover { opacity: 1; }
+
+.skill-add-row {
+  display: flex;
+  gap: 6px;
+}
+
+.skill-add-input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 5px 8px;
+  font-family: inherit;
+  font-size: 11.5px;
+  outline: none;
+}
+
+.skill-add-input:focus { border-color: var(--accent); }
+
+.skill-add-btn {
+  background: var(--accent-glow);
+  border: 1px solid rgba(124,111,255,0.3);
+  color: var(--accent2);
+  width: 28px;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skill-add-btn:hover { background: rgba(124,111,255,0.3); }
+
+/* Additional subsections */
+.additional-subsection { margin-bottom: 14px; }
+.additional-subsection:last-child { margin-bottom: 0; }
+
+.additional-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.additional-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Simple entry row */
+.simple-entry {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.simple-entry .form-input { flex: 1; }
+
+/* Language entry row */
+.language-entry {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.language-entry .lang-name { flex: 2; }
+.language-entry .lang-proficiency {
+  flex: 1.5;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 8px 6px;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.language-entry .lang-proficiency:focus { border-color: var(--accent); }
+
 /* ── API KEY WARNING ── */
 .api-warning {
   display: flex;

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
   setupSettings();
   setupActions();
+  setupResumeBuilder();
   detectJob();
 });
 
@@ -91,6 +92,10 @@ function setupSettings() {
       const toast = $('saveToast');
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2000);
+      // Auto-parse resume into builder fields if both key and resume present
+      if (apiKey && profile.resume) {
+        triggerAutoParseResume();
+      }
     });
   });
 }
@@ -351,7 +356,451 @@ function showToast(msg, duration = 3000) {
   setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-// ── LOAD GEMINI UTILS (injected via script tag in popup context) ──
-// Since popup.html loads popup.js directly, we import gemini utils via script
-// The functions tailorResume, generateCoverLetter, checkATSScore are defined in gemini.js
-// which is loaded before popup.js via the popup.html
+// ── RESUME BUILDER ──
+
+const SKILL_CATEGORIES = [
+  { id: 'programmingLanguages', label: 'Programming Languages' },
+  { id: 'csConcepts',           label: 'Core CS Concepts' },
+  { id: 'webDevelopment',       label: 'Web Development' },
+  { id: 'databases',            label: 'Databases' },
+  { id: 'cloudPlatforms',       label: 'Cloud & Platforms' },
+  { id: 'mlAI',                 label: 'Machine Learning & AI' },
+  { id: 'mobileDevelopment',    label: 'Mobile Development' }
+];
+
+function setupResumeBuilder() {
+  $('parseResumeBtn').addEventListener('click', handleParseResume);
+  $('saveBuilderBtn').addEventListener('click', saveBuilderData);
+  $('addExpBtn').addEventListener('click', () => addExpEntry({}));
+  $('addEduBtn').addEventListener('click', () => addEduEntry({}));
+  $('addProjectBtn').addEventListener('click', () => addProjectEntry({}));
+  $('addCertBtn').addEventListener('click', () => addSimpleEntry('b-cert-list', 'Certification', 'cert'));
+  $('addAchievementBtn').addEventListener('click', () => addSimpleEntry('b-achievement-list', 'Achievement', 'achievement'));
+  $('addLanguageBtn').addEventListener('click', () => addLanguageEntry({}));
+  $('addPublicationBtn').addEventListener('click', () => addSimpleEntry('b-publication-list', 'Publication', 'publication'));
+  renderSkillCategories({});
+  loadBuilderData();
+}
+
+async function handleParseResume() {
+  if (!apiKey) {
+    showToast('⚠️ Add your Gemini API key in Settings first');
+    $('settingsPanel').classList.add('open');
+    return;
+  }
+  if (!profile.resume) {
+    showToast('⚠️ Add your base resume in Settings first');
+    $('settingsPanel').classList.add('open');
+    return;
+  }
+  const btn = $('parseResumeBtn');
+  btn.disabled = true;
+  $('builderLoading').classList.remove('hidden');
+  $('builderFields').classList.add('hidden');
+  try {
+    const parsed = await parseResumeStructured(profile.resume, apiKey);
+    renderBuilderFields(parsed);
+    chrome.storage.local.set({ resumeBuilder: parsed });
+    $('builderFields').classList.remove('hidden');
+    showToast('✅ Resume parsed into fields!');
+  } catch (err) {
+    console.error('[Builder parse error]', err);
+    showToast(`❌ ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    $('builderLoading').classList.add('hidden');
+  }
+}
+
+async function triggerAutoParseResume() {
+  try {
+    $('builderLoading')?.classList.remove('hidden');
+    $('builderFields')?.classList.add('hidden');
+    const parsed = await parseResumeStructured(profile.resume, apiKey);
+    renderBuilderFields(parsed);
+    chrome.storage.local.set({ resumeBuilder: parsed });
+    $('builderFields')?.classList.remove('hidden');
+    showToast('🏗️ Resume Builder fields updated!');
+  } catch (_) {
+    // silent — user can parse manually from Builder tab
+  } finally {
+    $('builderLoading')?.classList.add('hidden');
+  }
+}
+
+function renderBuilderFields(data) {
+  const p = data.personal || {};
+  $('b-firstName').value = p.firstName || '';
+  $('b-lastName').value  = p.lastName  || '';
+  $('b-email').value     = p.email     || '';
+  $('b-phone').value     = p.phone     || '';
+  $('b-location').value  = p.location  || '';
+  $('b-linkedin').value  = p.linkedin  || '';
+  $('b-github').value    = p.github    || '';
+  $('b-summary').value   = data.summary || '';
+
+  $('b-experience-list').innerHTML = '';
+  (data.experience || []).forEach(exp => addExpEntry(exp));
+  if (!data.experience?.length) addExpEntry({});
+
+  $('b-education-list').innerHTML = '';
+  (data.education || []).forEach(edu => addEduEntry(edu));
+  if (!data.education?.length) addEduEntry({});
+
+  renderSkillCategories(data.skills || {});
+
+  $('b-projects-list').innerHTML = '';
+  (data.projects || []).forEach(proj => addProjectEntry(proj));
+
+  $('b-cert-list').innerHTML = '';
+  (data.certifications || []).forEach(c => addSimpleEntry('b-cert-list', 'Certification', 'cert', c));
+
+  $('b-achievement-list').innerHTML = '';
+  (data.achievements || []).forEach(a => addSimpleEntry('b-achievement-list', 'Achievement', 'achievement', a));
+
+  $('b-language-list').innerHTML = '';
+  (data.languages || []).forEach(l => addLanguageEntry(l));
+
+  $('b-publication-list').innerHTML = '';
+  (data.publications || []).forEach(pub => addSimpleEntry('b-publication-list', 'Publication', 'publication', pub));
+}
+
+// Normalize whatever Gemini returns for bullets into a clean string array
+function toBullets(val) {
+  if (Array.isArray(val)) return val.map(String).filter(v => v.trim());
+  if (typeof val === 'string' && val.trim()) return val.split('\n').map(s => s.replace(/^[•\-–*]\s*/,'').trim()).filter(v => v);
+  return [];
+}
+
+// ── EXPERIENCE ──
+function addExpEntry(data) {
+  const list = $('b-experience-list');
+  const idx  = list.children.length + 1;
+  const div  = document.createElement('div');
+  div.className = 'builder-entry';
+  const isCurrent = data.current || false;
+  div.innerHTML = `
+    <div class="entry-header">
+      <span class="entry-label">Experience #${idx}</span>
+      <button class="remove-entry-btn" type="button">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Job Title</label>
+      <input type="text" class="form-input exp-title" value="${esc(data.title)}" /></div>
+    <div class="form-group"><label class="form-label">Company Name</label>
+      <input type="text" class="form-input exp-company" value="${esc(data.company)}" /></div>
+    <div class="form-group"><label class="form-label">Location</label>
+      <input type="text" class="form-input exp-location" value="${esc(data.location)}" /></div>
+    <div class="form-row-2">
+      <div class="form-group"><label class="form-label">Start Date</label>
+        <input type="text" class="form-input exp-start" placeholder="Jan 2022" value="${esc(data.startDate)}" /></div>
+      <div class="form-group"><label class="form-label">End Date</label>
+        <input type="text" class="form-input exp-end" placeholder="Present"
+          value="${isCurrent ? 'Present' : esc(data.endDate)}"
+          ${isCurrent ? 'disabled style="opacity:0.4"' : ''} /></div>
+    </div>
+    <label class="checkbox-label">
+      <input type="checkbox" class="exp-current" ${isCurrent ? 'checked' : ''} />
+      <span>Currently Working Here</span>
+    </label>
+    <div class="form-group">
+      <label class="form-label">Bullet Points</label>
+      <div class="bullet-list">${(() => { const b = toBullets(data.bullets); return (b.length ? b : ['']).map(bulletRowHtml).join(''); })()}</div>
+      <button class="add-bullet-btn" type="button">+ Add Bullet</button>
+    </div>`;
+  div.querySelector('.remove-entry-btn').addEventListener('click', () => div.remove());
+  wireCurrentCheckbox(div, '.exp-current', '.exp-end');
+  wireBulletAdder(div);
+  list.appendChild(div);
+}
+
+// ── EDUCATION ──
+function addEduEntry(data) {
+  const list = $('b-education-list');
+  const idx  = list.children.length + 1;
+  const div  = document.createElement('div');
+  div.className = 'builder-entry';
+  const isCurrent = data.current || false;
+  div.innerHTML = `
+    <div class="entry-header">
+      <span class="entry-label">Education #${idx}</span>
+      <button class="remove-entry-btn" type="button">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">College / School Name</label>
+      <input type="text" class="form-input edu-school" value="${esc(data.school)}" /></div>
+    <div class="form-group"><label class="form-label">Degree &amp; Branch</label>
+      <input type="text" class="form-input edu-degree" placeholder="B.Tech Computer Science" value="${esc(data.degree)}" /></div>
+    <div class="form-group"><label class="form-label">Location</label>
+      <input type="text" class="form-input edu-location" value="${esc(data.location)}" /></div>
+    <div class="form-row-2">
+      <div class="form-group"><label class="form-label">Start Date</label>
+        <input type="text" class="form-input edu-start" placeholder="Aug 2020" value="${esc(data.startDate)}" /></div>
+      <div class="form-group"><label class="form-label">End Date</label>
+        <input type="text" class="form-input edu-end" placeholder="May 2024"
+          value="${isCurrent ? 'Present' : esc(data.endDate)}"
+          ${isCurrent ? 'disabled style="opacity:0.4"' : ''} /></div>
+    </div>
+    <label class="checkbox-label">
+      <input type="checkbox" class="edu-current" ${isCurrent ? 'checked' : ''} />
+      <span>Currently Studying Here</span>
+    </label>
+    <div class="form-group"><label class="form-label">CGPA / Percentage</label>
+      <input type="text" class="form-input edu-cgpa" placeholder="8.5 CGPA / 85%" value="${esc(data.cgpa)}" /></div>
+    <div class="form-group">
+      <label class="form-label">Bullet Points</label>
+      <div class="bullet-list">${(() => { const b = toBullets(data.bullets); return b.map(bulletRowHtml).join(''); })()}</div>
+      <button class="add-bullet-btn" type="button">+ Add Bullet</button>
+    </div>`;
+  div.querySelector('.remove-entry-btn').addEventListener('click', () => div.remove());
+  wireCurrentCheckbox(div, '.edu-current', '.edu-end');
+  wireBulletAdder(div);
+  list.appendChild(div);
+}
+
+// ── PROJECTS ──
+function addProjectEntry(data) {
+  const list = $('b-projects-list');
+  const idx  = list.children.length + 1;
+  const div  = document.createElement('div');
+  div.className = 'builder-entry';
+  const isCurrent = data.current || false;
+  div.innerHTML = `
+    <div class="entry-header">
+      <span class="entry-label">Project #${idx}</span>
+      <button class="remove-entry-btn" type="button">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Project Name</label>
+      <input type="text" class="form-input proj-name" value="${esc(data.name)}" /></div>
+    <div class="form-group"><label class="form-label">Organization</label>
+      <input type="text" class="form-input proj-org" value="${esc(data.organization)}" /></div>
+    <div class="form-group"><label class="form-label">Project Link (GitHub)</label>
+      <input type="text" class="form-input proj-link" placeholder="https://github.com/..." value="${esc(data.link)}" /></div>
+    <div class="form-group"><label class="form-label">Location</label>
+      <input type="text" class="form-input proj-location" value="${esc(data.location)}" /></div>
+    <div class="form-row-2">
+      <div class="form-group"><label class="form-label">Start Date</label>
+        <input type="text" class="form-input proj-start" placeholder="Jan 2023" value="${esc(data.startDate)}" /></div>
+      <div class="form-group"><label class="form-label">End Date</label>
+        <input type="text" class="form-input proj-end" placeholder="Present"
+          value="${isCurrent ? 'Present' : esc(data.endDate)}"
+          ${isCurrent ? 'disabled style="opacity:0.4"' : ''} /></div>
+    </div>
+    <label class="checkbox-label">
+      <input type="checkbox" class="proj-current" ${isCurrent ? 'checked' : ''} />
+      <span>Currently Working on This</span>
+    </label>
+    <div class="form-group">
+      <label class="form-label">Bullet Points</label>
+      <div class="bullet-list">${(() => { const b = toBullets(data.bullets); return (b.length ? b : ['']).map(bulletRowHtml).join(''); })()}</div>
+      <button class="add-bullet-btn" type="button">+ Add Bullet</button>
+    </div>`;
+  div.querySelector('.remove-entry-btn').addEventListener('click', () => div.remove());
+  wireCurrentCheckbox(div, '.proj-current', '.proj-end');
+  wireBulletAdder(div);
+  list.appendChild(div);
+}
+
+// ── SKILLS ──
+function renderSkillCategories(skillsData) {
+  const container = $('b-skills-container');
+  container.innerHTML = '';
+  SKILL_CATEGORIES.forEach(cat => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'skill-category';
+    catDiv.innerHTML = `
+      <div class="skill-cat-label">${cat.label}</div>
+      <div class="skill-chips-row" id="skillcat-${cat.id}"></div>
+      <div class="skill-add-row">
+        <input type="text" class="skill-add-input" placeholder="Type skill + Enter..." />
+        <button class="skill-add-btn" type="button">+</button>
+      </div>`;
+    container.appendChild(catDiv);
+    const chipsRow = catDiv.querySelector(`#skillcat-${cat.id}`);
+    (skillsData[cat.id] || []).forEach(skill => addSkillChip(chipsRow, skill));
+    const addInput = catDiv.querySelector('.skill-add-input');
+    catDiv.querySelector('.skill-add-btn').addEventListener('click', () => {
+      const val = addInput.value.trim();
+      if (val) { addSkillChip(chipsRow, val); addInput.value = ''; }
+    });
+    addInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = e.target.value.trim();
+        if (val) { addSkillChip(chipsRow, val); e.target.value = ''; }
+      }
+    });
+  });
+}
+
+function addSkillChip(container, text) {
+  const chip = document.createElement('div');
+  chip.className = 'skill-chip';
+  chip.innerHTML = `<span class="skill-chip-text">${esc(text)}</span><button class="skill-chip-remove" type="button">×</button>`;
+  chip.querySelector('.skill-chip-remove').addEventListener('click', () => chip.remove());
+  container.appendChild(chip);
+}
+
+// ── SIMPLE LIST (Certifications, Achievements, Publications) ──
+function addSimpleEntry(listId, label, cls, value = '') {
+  const list = $(listId);
+  const div  = document.createElement('div');
+  div.className = 'simple-entry';
+  div.innerHTML = `
+    <input type="text" class="form-input ${cls}-input" value="${esc(value)}" placeholder="${label}..." />
+    <button class="remove-entry-btn" type="button">✕</button>`;
+  div.querySelector('.remove-entry-btn').addEventListener('click', () => div.remove());
+  list.appendChild(div);
+}
+
+// ── LANGUAGES ──
+function addLanguageEntry(data) {
+  const list = $('b-language-list');
+  const div  = document.createElement('div');
+  div.className = 'language-entry';
+  const prof = data.proficiency || 'Professional';
+  div.innerHTML = `
+    <input type="text" class="form-input lang-name" placeholder="Language..." value="${esc(data.name)}" />
+    <select class="lang-proficiency">
+      <option value="Native"       ${prof === 'Native'       ? 'selected' : ''}>Native</option>
+      <option value="Professional" ${prof === 'Professional' ? 'selected' : ''}>Professional</option>
+      <option value="Basic"        ${prof === 'Basic'        ? 'selected' : ''}>Basic</option>
+    </select>
+    <button class="remove-entry-btn" type="button">✕</button>`;
+  div.querySelector('.remove-entry-btn').addEventListener('click', () => div.remove());
+  list.appendChild(div);
+}
+
+// ── BULLET HELPERS ──
+function bulletRowHtml(text) {
+  return `<div class="bullet-row">
+    <input type="text" class="form-input bullet-input" value="${esc(text)}" placeholder="Achieved..." />
+    <button class="remove-bullet-btn" type="button">✕</button>
+  </div>`;
+}
+
+function wireBulletAdder(entry) {
+  entry.querySelectorAll('.bullet-row').forEach(row =>
+    row.querySelector('.remove-bullet-btn').addEventListener('click', () => row.remove())
+  );
+  entry.querySelector('.add-bullet-btn').addEventListener('click', () => {
+    const list = entry.querySelector('.bullet-list');
+    const row  = document.createElement('div');
+    row.innerHTML = bulletRowHtml('');
+    const newRow = row.firstElementChild;
+    newRow.querySelector('.remove-bullet-btn').addEventListener('click', () => newRow.remove());
+    list.appendChild(newRow);
+  });
+}
+
+function wireCurrentCheckbox(entry, cbSelector, endSelector) {
+  const cb  = entry.querySelector(cbSelector);
+  const end = entry.querySelector(endSelector);
+  cb.addEventListener('change', () => {
+    end.disabled = cb.checked;
+    end.style.opacity = cb.checked ? '0.4' : '1';
+    if (cb.checked) end.value = 'Present';
+  });
+}
+
+// ── COLLECT ──
+function collectBullets(entry) {
+  return Array.from(entry.querySelectorAll('.bullet-input'))
+    .map(i => i.value.trim()).filter(v => v);
+}
+
+function collectBuilderData() {
+  const experience = [];
+  $('b-experience-list').querySelectorAll('.builder-entry').forEach(e => {
+    experience.push({
+      title:     e.querySelector('.exp-title')?.value    || '',
+      company:   e.querySelector('.exp-company')?.value  || '',
+      location:  e.querySelector('.exp-location')?.value || '',
+      startDate: e.querySelector('.exp-start')?.value    || '',
+      endDate:   e.querySelector('.exp-end')?.value      || '',
+      current:   e.querySelector('.exp-current')?.checked || false,
+      bullets:   collectBullets(e)
+    });
+  });
+
+  const education = [];
+  $('b-education-list').querySelectorAll('.builder-entry').forEach(e => {
+    education.push({
+      school:    e.querySelector('.edu-school')?.value    || '',
+      degree:    e.querySelector('.edu-degree')?.value    || '',
+      location:  e.querySelector('.edu-location')?.value  || '',
+      startDate: e.querySelector('.edu-start')?.value     || '',
+      endDate:   e.querySelector('.edu-end')?.value       || '',
+      current:   e.querySelector('.edu-current')?.checked || false,
+      cgpa:      e.querySelector('.edu-cgpa')?.value      || '',
+      bullets:   collectBullets(e)
+    });
+  });
+
+  const skills = {};
+  SKILL_CATEGORIES.forEach(cat => {
+    skills[cat.id] = Array.from(
+      $(`skillcat-${cat.id}`)?.querySelectorAll('.skill-chip-text') || []
+    ).map(el => el.textContent.trim()).filter(v => v);
+  });
+
+  const projects = [];
+  $('b-projects-list').querySelectorAll('.builder-entry').forEach(e => {
+    projects.push({
+      name:         e.querySelector('.proj-name')?.value     || '',
+      organization: e.querySelector('.proj-org')?.value      || '',
+      link:         e.querySelector('.proj-link')?.value     || '',
+      location:     e.querySelector('.proj-location')?.value || '',
+      startDate:    e.querySelector('.proj-start')?.value    || '',
+      endDate:      e.querySelector('.proj-end')?.value      || '',
+      current:      e.querySelector('.proj-current')?.checked || false,
+      bullets:      collectBullets(e)
+    });
+  });
+
+  const certifications = Array.from($('b-cert-list')?.querySelectorAll('.cert-input') || [])
+    .map(i => i.value.trim()).filter(v => v);
+  const achievements = Array.from($('b-achievement-list')?.querySelectorAll('.achievement-input') || [])
+    .map(i => i.value.trim()).filter(v => v);
+  const publications = Array.from($('b-publication-list')?.querySelectorAll('.publication-input') || [])
+    .map(i => i.value.trim()).filter(v => v);
+
+  const languages = [];
+  $('b-language-list').querySelectorAll('.language-entry').forEach(e => {
+    const name = e.querySelector('.lang-name')?.value?.trim();
+    if (name) languages.push({ name, proficiency: e.querySelector('.lang-proficiency')?.value || 'Professional' });
+  });
+
+  return {
+    personal: {
+      firstName: $('b-firstName')?.value || '',
+      lastName:  $('b-lastName')?.value  || '',
+      email:     $('b-email')?.value     || '',
+      phone:     $('b-phone')?.value     || '',
+      location:  $('b-location')?.value  || '',
+      linkedin:  $('b-linkedin')?.value  || '',
+      github:    $('b-github')?.value    || ''
+    },
+    summary: $('b-summary')?.value || '',
+    experience, education, skills, projects,
+    certifications, achievements, languages, publications
+  };
+}
+
+function saveBuilderData() {
+  const data = collectBuilderData();
+  chrome.storage.local.set({ resumeBuilder: data }, () => {
+    showToast('✅ Resume fields saved!');
+  });
+}
+
+function loadBuilderData() {
+  chrome.storage.local.get(['resumeBuilder'], (data) => {
+    if (data.resumeBuilder) {
+      renderBuilderFields(data.resumeBuilder);
+      $('builderFields').classList.remove('hidden');
+    }
+  });
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
