@@ -112,15 +112,22 @@
             <span class="chip secondary" id="jobPlatform">—</span>
           </div>
           <div class="divider"></div>
-          <div class="section-label">Job Description</div>
-          <div class="job-desc-text" id="jobDesc">—</div>
+          <div class="desc-label-row">
+            <div class="section-label">Job Description</div>
+            <span class="edit-hint">✏️ editable</span>
+          </div>
+          <textarea class="job-desc-text" id="jobDesc" placeholder="Job description will appear here. You can also edit or paste it manually."></textarea>
         </div>
       </div>
 
       <div class="empty-state hidden" id="jobError">
         <div class="empty-icon">🔍</div>
         <p class="empty-title">No Job Detected</p>
-        <p class="empty-sub">Navigate to a job listing on LinkedIn, Naukri, or Indeed.</p>
+        <p class="empty-sub">Navigate to a job listing, or paste the job description below.</p>
+        <div class="manual-paste-area">
+          <textarea id="manualJobDesc" class="form-textarea manual-desc-input" placeholder="Paste the job description here..."></textarea>
+          <button class="btn btn-primary full-width" id="useManualDescBtn">Use This Description</button>
+        </div>
       </div>
     </div>
 

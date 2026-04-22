@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
   setupSettings();
   setupActions();
+  setupJobDescEditing();
   await restoreTailoredResumeState();
   setupResumeBuilder();
   detectJob();
@@ -282,9 +283,25 @@ function renderJobDetails(data) {
   $('jobCompany').textContent  = data.company || 'Unknown Company';
   $('jobLocation').textContent = data.location ? `📍 ${data.location}` : '📍 Location N/A';
   $('jobPlatform').textContent = data.platform || 'Unknown';
-  $('jobDesc').textContent     = data.description || 'No description extracted.';
+  $('jobDesc').value           = data.description || '';
 
   $('jobDetails').classList.remove('hidden');
+}
+
+function setupJobDescEditing() {
+  $('jobDesc').addEventListener('input', () => {
+    if (!jobData) jobData = { title: '', company: '', location: '', platform: 'Manual' };
+    jobData.description = $('jobDesc').value;
+  });
+
+  $('useManualDescBtn').addEventListener('click', () => {
+    const desc = $('manualJobDesc').value.trim();
+    if (!desc) { showToast('⚠️ Please paste a job description first'); return; }
+    jobData = { title: 'Manual Entry', company: '', location: '', platform: 'Manual', description: desc };
+    renderJobDetails(jobData);
+    setBanner('active', 'Manual job description loaded');
+    showToast('✅ Job description loaded');
+  });
 }
 
 // ── ACTION BUTTONS ──
