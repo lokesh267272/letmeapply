@@ -149,6 +149,7 @@ function setupSettings() {
   });
 
   $('saveSettings').addEventListener('click', () => {
+    const oldResume = profile.resume;
     apiKey = $('apiKeyInput').value.trim();
     profile.name = $('nameInput').value.trim();
     profile.email = $('emailInput').value.trim();
@@ -165,8 +166,8 @@ function setupSettings() {
       const toast = $('saveToast');
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2000);
-      // Auto-parse resume into builder fields if both key and resume present
-      if (apiKey && profile.resume) {
+      // Only re-parse when the resume text itself changed, not when just the API key changed
+      if (apiKey && profile.resume && profile.resume !== oldResume) {
         triggerAutoParseResume();
       }
     });
@@ -195,28 +196,68 @@ async function detectJob() {
       // Content script likely already injected, continue
     }
 
-    chrome.tabs.sendMessage(tab.id, { action: 'extractJob' }, (response) => {
-      if (chrome.runtime.lastError || !response) {
-        setBanner('error', 'Could not read page');
-        showJobError();
-        return;
-      }
+    const response = await requestJobExtractionWithRetry(tab.id);
 
-      if (!response.success || !response.data) {
-        setBanner('error', 'No job posting detected');
-        showJobError();
-        return;
-      }
+    if (!response?.success || !response?.data) {
+      setBanner('error', 'No job posting detected');
+      showJobError();
+      return;
+    }
 
-      jobData = response.data;
-      renderJobDetails(jobData);
-      setBanner('active', `${jobData.platform} job detected`);
-    });
+    jobData = response.data;
+    renderJobDetails(jobData);
+    setBanner('active', `${jobData.platform} job detected`);
 
   } catch (err) {
     setBanner('error', 'Access error');
     showJobError();
   }
+}
+
+function sendExtractJobMessage(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { action: 'extractJob' }, (response) => {
+      if (chrome.runtime.lastError) {
+        resolve(null);
+        return;
+      }
+      resolve(response || null);
+    });
+  });
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function hasMeaningfulJobData(response) {
+  const data = response?.data;
+  return Boolean(
+    response?.success &&
+    data &&
+    data.title &&
+    data.description &&
+    data.description.trim().length > 120
+  );
+}
+
+async function requestJobExtractionWithRetry(tabId, attempts = 4) {
+  let lastResponse = null;
+
+  for (let i = 0; i < attempts; i++) {
+    const response = await sendExtractJobMessage(tabId);
+    lastResponse = response;
+
+    if (hasMeaningfulJobData(response)) {
+      return response;
+    }
+
+    if (i < attempts - 1) {
+      await wait(600);
+    }
+  }
+
+  return lastResponse;
 }
 
 function setBanner(state, text) {
