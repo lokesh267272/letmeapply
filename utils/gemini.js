@@ -141,9 +141,14 @@ async function callGemini(prompt, apiKey, config = {}) {
   }
 
   const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  const text = parts
+    .filter((p) => !p.thought)
+    .map((p) => p.text ?? "")
+    .join("")
+    .trim();
   if (!text) throw new Error("Gemini returned empty response.");
-  return text.trim();
+  return text;
 }
 
 function parseJsonSafely(rawText, fallbackMessage) {
@@ -377,7 +382,9 @@ ${email || "[Email]"}
 
 Return ONLY the cover letter with no commentary or markdown fences.`;
 
-  return await callGemini(prompt, apiKey);
+  return await callGemini(prompt, apiKey, {
+    maxOutputTokens: 8192
+  });
 }
 
 /**

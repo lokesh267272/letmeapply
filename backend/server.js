@@ -1,6 +1,7 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
 const { buildResumeHtml } = require("./renderResume");
+const { buildCoverLetterHtml } = require("./renderCoverLetter");
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 3001);
@@ -63,6 +64,41 @@ app.post("/generate-pdf", async (req, res) => {
       ok: false,
       error: "Failed to generate PDF"
     });
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+  }
+});
+
+app.post("/generate-cover-letter-pdf", async (req, res) => {
+  const payload = req.body || {};
+  let browser;
+
+  try {
+    const html = buildCoverLetterHtml(payload);
+
+    browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      displayHeaderFooter: false,
+      preferCSSPageSize: true
+    });
+    const pdfBuffer = Buffer.from(pdf);
+
+    const fileName = String(payload.fileName || "Cover-Letter.pdf").replace(/[<>:"/\\|?*]+/g, "-");
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", String(pdfBuffer.length));
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("[PDF backend] Failed to generate cover letter PDF", error);
+    res.status(500).json({ ok: false, error: "Failed to generate cover letter PDF" });
   } finally {
     if (browser) {
       await browser.close().catch(() => {});

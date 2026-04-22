@@ -10,6 +10,7 @@ const $ = id => document.getElementById(id);
 const storageGet = keys => new Promise(resolve => chrome.storage.local.get(keys, resolve));
 const storageSet = items => new Promise(resolve => chrome.storage.local.set(items, resolve));
 const TAILORED_PREVIEW_KEY = 'tailoredResumePreview';
+const COVER_LETTER_KEY = 'coverLetterPreview';
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupActions();
   setupJobDescEditing();
   await restoreTailoredResumeState();
+  await restoreCoverLetterState();
   setupResumeBuilder();
   detectJob();
 });
@@ -312,6 +314,7 @@ function setupActions() {
   $('genCoverBtn').addEventListener('click', () => handleCoverLetter());
   $('checkATSBtn').addEventListener('click', () => handleATSScore());
   $('openResumePreviewBtn')?.addEventListener('click', () => openTailoredResumePreview());
+  $('openCoverPreviewBtn')?.addEventListener('click', () => openCoverLetterPreview());
 
   const legacyResumeCopyBtn = document.querySelector('#resumeResult .copy-btn[data-target="resumeContent"]');
   if (legacyResumeCopyBtn) legacyResumeCopyBtn.classList.add('hidden');
@@ -422,14 +425,47 @@ async function handleCoverLetter() {
       email: profile.email
     }, apiKey);
 
-    $('coverContent').textContent = result;
-    $('coverResult').classList.remove('hidden');
+    const coverState = {
+      coverLetterText: result,
+      candidateName: profile.name,
+      email: profile.email,
+      job: {
+        title: jobData.title || '',
+        company: jobData.company || ''
+      },
+      generatedAt: Date.now()
+    };
+
+    await storageSet({ [COVER_LETTER_KEY]: coverState });
+    renderCoverLetterReady(coverState);
+    await openCoverLetterPreview();
     showToast('✅ Cover letter generated!');
   } catch (err) {
     showToast(`❌ ${err.message}`);
   } finally {
     btn.disabled = false;
     $('coverLoading').classList.add('hidden');
+  }
+}
+
+function renderCoverLetterReady(state) {
+  const companyText = state?.job?.company ? ` at ${state.job.company}` : '';
+  const titleText = state?.job?.title || 'this role';
+  $('coverContent').textContent = `Cover letter ready for ${titleText}${companyText}. Open the preview to review and download the PDF.`;
+  $('coverResult').classList.remove('hidden');
+  $('openCoverPreviewBtn')?.classList.remove('hidden');
+}
+
+async function openCoverLetterPreview() {
+  await chrome.tabs.create({
+    url: chrome.runtime.getURL('preview/cover-letter-preview.html')
+  });
+}
+
+async function restoreCoverLetterState() {
+  const data = await storageGet([COVER_LETTER_KEY]);
+  if (data[COVER_LETTER_KEY]?.coverLetterText) {
+    renderCoverLetterReady(data[COVER_LETTER_KEY]);
   }
 }
 

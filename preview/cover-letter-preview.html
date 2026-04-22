@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cover Letter Preview</title>
+  <link rel="stylesheet" href="./cover-letter-preview.css" />
+</head>
+<body>
+  <div class="preview-shell">
+    <header class="preview-toolbar">
+      <div class="preview-heading">
+        <p class="eyebrow">LetMeApply</p>
+        <h1>Cover Letter Preview</h1>
+        <p class="preview-meta" id="previewMeta">Loading your cover letter...</p>
+      </div>
+
+      <div class="preview-actions">
+        <button class="btn btn-primary" type="button" id="downloadPdfBtn">Download PDF</button>
+        <button class="btn btn-secondary" type="button" id="refreshPreviewBtn">Refresh</button>
+        <p class="download-status" id="downloadStatus" aria-live="polite"></p>
+      </div>
+    </header>
+
+    <section class="empty-state hidden" id="emptyState">
+      <div class="empty-card">
+        <h2>No cover letter found</h2>
+        <p>Go back to the extension popup, click <strong>Generate Cover Letter</strong>, and the preview will appear here.</p>
+      </div>
+    </section>
+
+    <div class="cover-letter-stage hidden" id="coverLetterStage">
+      <div id="coverLetterMount"></div>
+    </div>
+  </div>
+
+  <script src="../utils/coverLetterRenderer.js"></script>
+  <script src="./cover-letter-preview.js"></script>
+</body>
+</html>
