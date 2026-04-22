@@ -117,6 +117,26 @@ a {
   border: 1px solid rgba(17, 17, 17, 0.12);
 }
 
+.btn-docx {
+  background: #ffffff;
+  color: var(--primary);
+  border: 1.5px solid rgba(17, 17, 17, 0.28);
+}
+
+.btn-docx:hover {
+  border-color: var(--primary);
+}
+
+.download-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.download-row .btn {
+  flex: 1;
+}
+
 .download-status {
   margin: 0;
   min-height: 18px;

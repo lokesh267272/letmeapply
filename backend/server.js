@@ -2,6 +2,8 @@ const express = require("express");
 const puppeteer = require("puppeteer");
 const { buildResumeHtml } = require("./renderResume");
 const { buildCoverLetterHtml } = require("./renderCoverLetter");
+const { buildResumeDocx } = require("./generateResumeDocx");
+const { buildCoverLetterDocx } = require("./generateCoverLetterDocx");
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 3001);
@@ -68,6 +70,38 @@ app.post("/generate-pdf", async (req, res) => {
     if (browser) {
       await browser.close().catch(() => {});
     }
+  }
+});
+
+app.post("/generate-resume-docx", async (req, res) => {
+  const payload = req.body || {};
+  try {
+    const buffer = await buildResumeDocx(payload);
+    const fileName = String(payload.fileName || "Resume.docx")
+      .replace(/\.pdf$/i, ".docx")
+      .replace(/[<>:"/\\|?*]+/g, "-");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.end(buffer);
+  } catch (error) {
+    console.error("[DOCX backend] Failed to generate resume DOCX", error);
+    res.status(500).json({ ok: false, error: "Failed to generate resume DOCX" });
+  }
+});
+
+app.post("/generate-cover-letter-docx", async (req, res) => {
+  const payload = req.body || {};
+  try {
+    const buffer = await buildCoverLetterDocx(payload);
+    const fileName = String(payload.fileName || "Cover-Letter.docx")
+      .replace(/\.pdf$/i, ".docx")
+      .replace(/[<>:"/\\|?*]+/g, "-");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.end(buffer);
+  } catch (error) {
+    console.error("[DOCX backend] Failed to generate cover letter DOCX", error);
+    res.status(500).json({ ok: false, error: "Failed to generate cover letter DOCX" });
   }
 });
 

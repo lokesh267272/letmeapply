@@ -1,5 +1,6 @@
 const COVER_LETTER_KEY = "coverLetterPreview";
-const BACKEND_URL = "http://127.0.0.1:3001/generate-cover-letter-pdf";
+const BACKEND_PDF_URL = "http://127.0.0.1:3001/generate-cover-letter-pdf";
+const BACKEND_DOCX_URL = "http://127.0.0.1:3001/generate-cover-letter-docx";
 
 let previewState = null;
 
@@ -7,6 +8,7 @@ const $ = (id) => document.getElementById(id);
 
 document.addEventListener("DOMContentLoaded", async () => {
   $("downloadPdfBtn").addEventListener("click", handleDownloadPdf);
+  $("downloadDocxBtn").addEventListener("click", handleDownloadDocx);
   $("refreshPreviewBtn").addEventListener("click", loadPreviewState);
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -39,12 +41,14 @@ function renderPreview() {
     stage.classList.add("hidden");
     meta.textContent = "Generate a cover letter from the popup to see it here.";
     $("downloadPdfBtn").disabled = true;
+    $("downloadDocxBtn").disabled = true;
     return;
   }
 
   emptyState.classList.add("hidden");
   stage.classList.remove("hidden");
   $("downloadPdfBtn").disabled = false;
+  $("downloadDocxBtn").disabled = false;
 
   mount.innerHTML = CoverLetterRenderer.buildCoverLetterMarkup(previewState);
 
@@ -95,7 +99,7 @@ async function handleDownloadPdf() {
   setStatus("Connecting to the local PDF backend...");
 
   try {
-    const response = await fetch(BACKEND_URL, {
+    const response = await fetch(BACKEND_PDF_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -130,6 +134,67 @@ async function handleDownloadPdf() {
     setStatus("PDF downloaded successfully.", "success");
   } catch (error) {
     console.error("[Cover letter preview] PDF download failed", error);
+    setStatus("Start the backend first with: cd backend && npm install && npm start", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+async function handleDownloadDocx() {
+  if (!previewState?.coverLetterText) return;
+
+  const button = $("downloadDocxBtn");
+  const originalText = button.textContent;
+
+  const namePart = previewState.candidateName ? `${previewState.candidateName} - ` : "";
+  const jobPart = previewState.job?.title
+    ? `Cover Letter - ${previewState.job.title}`
+    : "Cover Letter";
+  const fileName = sanitizeFileName(`${namePart}${jobPart}.docx`);
+
+  button.disabled = true;
+  button.textContent = "Generating...";
+  setStatus("Building DOCX file...");
+
+  try {
+    const response = await fetch(BACKEND_DOCX_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName,
+        coverLetterText: previewState.coverLetterText,
+        candidateName: previewState.candidateName,
+        email: previewState.email,
+        phone: previewState.phone,
+        location: previewState.location,
+        generatedAt: previewState.generatedAt
+      })
+    });
+
+    if (!response.ok) throw new Error("DOCX generation failed");
+
+    const arrayBuffer = await response.arrayBuffer();
+    const blob = new Blob([arrayBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    });
+    const url = URL.createObjectURL(blob);
+
+    if (chrome.downloads?.download) {
+      await chrome.downloads.download({ url, filename: fileName, saveAs: true });
+    } else {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    window.setTimeout(() => URL.revokeObjectURL(url), 15000);
+    setStatus("DOCX downloaded — open in Word to edit.", "success");
+  } catch (error) {
+    console.error("[Cover letter preview] DOCX download failed", error);
     setStatus("Start the backend first with: cd backend && npm install && npm start", "error");
   } finally {
     button.disabled = false;
