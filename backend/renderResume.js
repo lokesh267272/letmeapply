@@ -22,8 +22,8 @@ function buildResumeHtml(payload = {}) {
     }
 
     @page {
-      size: letter;
-      margin: 1.8cm 2cm;
+      size: A4;
+      margin: 1.3cm 1.7cm;
     }
 
     html,
@@ -36,8 +36,8 @@ function buildResumeHtml(payload = {}) {
     }
 
     body {
-      font-size: 14px;
-      line-height: 1.42;
+      font-size: 13px;
+      line-height: 1.35;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -53,24 +53,24 @@ function buildResumeHtml(payload = {}) {
 
     .resume-header {
       text-align: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .resume-header h1 {
       margin: 0;
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 700;
       line-height: 1.1;
     }
 
     .contact-line {
-      margin-top: 10px;
+      margin-top: 6px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 6px;
-      font-size: 14px;
-      line-height: 1.5;
+      gap: 5px;
+      font-size: 12.5px;
+      line-height: 1.4;
     }
 
     .sep {
@@ -78,28 +78,30 @@ function buildResumeHtml(payload = {}) {
     }
 
     .resume-section {
-      margin-top: 18px;
+      margin-top: 11px;
     }
 
     .resume-section h2 {
-      margin: 0 0 8px;
-      padding-bottom: 3px;
+      margin: 0 0 5px;
+      padding-bottom: 2px;
       border-bottom: 1px solid var(--line);
-      font-size: 20px;
+      font-size: 12px;
       font-weight: 700;
       line-height: 1.2;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       break-after: avoid-page;
       page-break-after: avoid;
     }
 
     .objective {
       margin: 0;
-      font-size: 14px;
-      line-height: 1.45;
+      font-size: 13px;
+      line-height: 1.4;
     }
 
     .entry {
-      margin-top: 12px;
+      margin-top: 7px;
       break-inside: auto;
       page-break-inside: auto;
     }
@@ -111,7 +113,7 @@ function buildResumeHtml(payload = {}) {
     .entry-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
+      gap: 12px;
       align-items: start;
       break-after: avoid-page;
       page-break-after: avoid;
@@ -119,8 +121,8 @@ function buildResumeHtml(payload = {}) {
 
     .entry-main,
     .entry-side {
-      font-size: 14px;
-      line-height: 1.4;
+      font-size: 13px;
+      line-height: 1.35;
     }
 
     .entry-side {
@@ -130,18 +132,18 @@ function buildResumeHtml(payload = {}) {
 
     .bullet-list {
       list-style: none;
-      margin: 6px 0 0;
+      margin: 3px 0 0;
       padding: 0 0 0 14px;
     }
 
     .bullet-list.compact {
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     .bullet-list li {
       position: relative;
-      margin: 0 0 4px;
-      line-height: 1.4;
+      margin: 0 0 2px;
+      line-height: 1.35;
       break-inside: auto;
       page-break-inside: auto;
     }
@@ -150,7 +152,7 @@ function buildResumeHtml(payload = {}) {
       content: "";
       position: absolute;
       left: -11px;
-      top: 0.58em;
+      top: 0.56em;
       width: 4px;
       height: 4px;
       border-radius: 50%;
@@ -159,7 +161,7 @@ function buildResumeHtml(payload = {}) {
 
     @media screen and (max-width: 640px) {
       .resume-header h1 {
-        font-size: 28px;
+        font-size: 22px;
       }
 
       .entry-row {
