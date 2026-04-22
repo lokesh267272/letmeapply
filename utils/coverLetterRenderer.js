@@ -19,7 +19,19 @@
     return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   }
 
-  function textToParagraphs(text) {
+  // Wraps [placeholder] tokens in editable spans (browser preview only).
+  // escapeHtml runs first so the span markup itself is never double-escaped.
+  function wrapPlaceholders(html) {
+    return html.replace(/\[([^\]]+)\]/g, function (_, inner) {
+      return (
+        '<span class="cl-placeholder" contenteditable="true" spellcheck="false">' +
+        "[" + inner + "]" +
+        "</span>"
+      );
+    });
+  }
+
+  function textToParagraphs(text, editable) {
     return String(text ?? "")
       .trim()
       .split(/\n{2,}/)
@@ -28,14 +40,18 @@
       .map((block) => {
         const inner = block
           .split(/\n/)
-          .map((line) => escapeHtml(line.trim()))
+          .map((line) => {
+            const escaped = escapeHtml(line.trim());
+            return editable ? wrapPlaceholders(escaped) : escaped;
+          })
           .join("<br>");
         return `<p class="cl-para">${inner}</p>`;
       })
       .join("");
   }
 
-  function buildCoverLetterMarkup(data) {
+  function buildCoverLetterMarkup(data, options) {
+    const editable = !!(options && options.editable);
     const name = escapeHtml(data.candidateName || "");
     const contactParts = [];
     if (data.email) contactParts.push(escapeHtml(data.email));
@@ -43,7 +59,7 @@
     if (data.location) contactParts.push(escapeHtml(data.location));
     const contact = contactParts.join(" &nbsp;|&nbsp; ");
     const date = escapeHtml(formatDate(data.generatedAt));
-    const body = textToParagraphs(data.coverLetterText);
+    const body = textToParagraphs(data.coverLetterText, editable);
 
     return `
       <main class="cl-page">

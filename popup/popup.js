@@ -425,8 +425,24 @@ async function handleCoverLetter() {
       email: profile.email
     }, apiKey);
 
+    // Replace placeholders Gemini leaves for known values
+    let coverLetterText = result;
+    if (profile.name) {
+      coverLetterText = coverLetterText
+        .replace(/\[Your Name\]/gi, profile.name)
+        .replace(/\[Candidate Name\]/gi, profile.name)
+        .replace(/\[Your Full Name\]/gi, profile.name)
+        .replace(/\[Full Name\]/gi, profile.name);
+    }
+    if (profile.email) {
+      coverLetterText = coverLetterText
+        .replace(/\[Your Email\]/gi, profile.email)
+        .replace(/\[Email Address\]/gi, profile.email)
+        .replace(/\[Email\]/gi, profile.email);
+    }
+
     const coverState = {
-      coverLetterText: result,
+      coverLetterText,
       candidateName: profile.name,
       email: profile.email,
       job: {

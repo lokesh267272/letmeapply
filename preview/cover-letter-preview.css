@@ -235,6 +235,44 @@ a {
   margin-bottom: 0;
 }
 
+/* ── Editable placeholder fields ── */
+.cl-placeholder {
+  display: inline;
+  background: rgba(79, 70, 229, 0.10);
+  border-bottom: 1.5px solid #4f46e5;
+  border-radius: 3px;
+  color: #3730a3;
+  padding: 0 3px;
+  cursor: text;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.cl-placeholder:focus {
+  background: rgba(79, 70, 229, 0.18);
+  border-bottom-color: #3730a3;
+}
+
+.cl-placeholder--filled {
+  background: transparent;
+  border-bottom-color: transparent;
+  color: inherit;
+}
+
+/* ── Hint banner ── */
+.cl-hint {
+  max-width: calc(var(--page-width) + 80px);
+  margin: 0 auto 12px;
+  padding: 10px 16px;
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  border-radius: 10px;
+  font-size: 13px;
+  color: #3730a3;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
 @media (max-width: 980px) {
   body {
     padding: 14px;
