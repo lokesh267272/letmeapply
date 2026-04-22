@@ -157,6 +157,25 @@ body {
   gap: 12px;
 }
 
+.settings-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.settings-footer a {
+  color: var(--accent2);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.settings-footer a:hover {
+  text-decoration: underline;
+}
+
 /* ── FORM ── */
 .form-group {
   display: flex;
@@ -251,8 +270,31 @@ body {
 .main {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 57px);
+  height: calc(100vh - 57px - 34px);
   overflow: hidden;
+}
+
+/* ── MAIN FOOTER ── */
+.main-footer {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.main-footer a {
+  color: var(--accent2);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.main-footer a:hover {
+  text-decoration: underline;
 }
 
 /* ── DETECT BANNER ── */

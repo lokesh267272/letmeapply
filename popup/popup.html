@@ -1,360 +1,487 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LetMeApply</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="popup.css" />
-</head>
-<body>
-
-  <!-- ── HEADER ── -->
-  <div class="header">
-    <div class="logo">
-      <div class="logo-mark">⚡</div>
-      <span class="logo-text">LetMe<strong>Apply</strong></span>
-    </div>
-    <div class="header-actions">
-      <button class="icon-btn" id="settingsBtn" title="Settings">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- ── SETTINGS PANEL ── -->
-  <div class="settings-panel" id="settingsPanel">
-    <div class="settings-header">
-      <span>⚙ Settings & Profile</span>
-      <button class="icon-btn small" id="closeSettings">✕</button>
-    </div>
-    <div class="settings-body">
-      <div class="form-group">
-        <label class="form-label">Gemini API Key <span class="req">*</span></label>
-        <div class="input-wrap">
-          <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy..." autocomplete="off"/>
-          <button class="toggle-vis" id="toggleKey" type="button">👁</button>
-        </div>
-        <p class="form-hint">Get free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LetMeApply</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <!-- ── HEADER ── -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-mark">⚡</div>
+        <span class="logo-text">LetMe<strong>Apply</strong></span>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Your Full Name</label>
-        <input type="text" id="nameInput" class="form-input" placeholder="Lokesh Kumar" />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Your Email</label>
-        <input type="email" id="emailInput" class="form-input" placeholder="lokesh@example.com" />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Your Skills (comma-separated)</label>
-        <input type="text" id="skillsInput" class="form-input" placeholder="React, Node.js, Firebase..." />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Base Resume (paste full text) <span class="req">*</span></label>
-        <textarea id="resumeInput" class="form-textarea" placeholder="Paste your full resume text here. AI will tailor this for each job..."></textarea>
-      </div>
-
-      <button class="btn btn-primary" id="saveSettings">
-        <span>Save Profile</span>
-      </button>
-      <div class="save-toast" id="saveToast">✅ Saved!</div>
-    </div>
-  </div>
-
-  <!-- ── MAIN CONTENT ── -->
-  <div class="main" id="mainContent">
-
-    <!-- Job Detection Banner -->
-    <div class="detect-banner" id="detectBanner">
-      <div class="detect-dot" id="detectDot"></div>
-      <span id="detectText">Analyzing page...</span>
-    </div>
-
-    <!-- Tab Bar -->
-    <div class="tab-bar">
-      <button class="tab active" data-tab="job">
-        <span class="tab-icon">🔍</span> Job
-      </button>
-      <button class="tab" data-tab="resume">
-        <span class="tab-icon">📄</span> Resume
-      </button>
-      <button class="tab" data-tab="cover">
-        <span class="tab-icon">✉️</span> Cover
-      </button>
-      <button class="tab" data-tab="ats">
-        <span class="tab-icon">📊</span> ATS
-      </button>
-      <button class="tab" data-tab="builder">
-        <span class="tab-icon">🏗️</span> Build
-      </button>
-    </div>
-
-    <!-- Tab: Job Details -->
-    <div class="tab-pane active" id="tab-job">
-      <button class="btn btn-extract full-width" id="extractJobBtn">
-        🔄 Extract Job Description
-      </button>
-      <div class="loading-state" id="jobLoading">
-        <div class="spinner"></div>
-        <p>Extracting job details...</p>
-      </div>
-
-      <div id="jobDetails" class="hidden">
-        <div class="job-card">
-          <div class="job-title" id="jobTitle">—</div>
-          <div class="job-company" id="jobCompany">—</div>
-          <div class="job-chips">
-            <span class="chip" id="jobLocation">—</span>
-            <span class="chip secondary" id="jobPlatform">—</span>
-          </div>
-          <div class="divider"></div>
-          <div class="desc-label-row">
-            <div class="section-label">Job Description</div>
-            <span class="edit-hint">✏️ editable</span>
-          </div>
-          <textarea class="job-desc-text" id="jobDesc" placeholder="Job description will appear here. You can also edit or paste it manually."></textarea>
-        </div>
-      </div>
-
-      <div class="empty-state hidden" id="jobError">
-        <div class="empty-icon">🔍</div>
-        <p class="empty-title">No Job Detected</p>
-        <p class="empty-sub">Navigate to a job listing, or paste the job description below.</p>
-        <div class="manual-paste-area">
-          <textarea id="manualJobDesc" class="form-textarea manual-desc-input" placeholder="Paste the job description here..."></textarea>
-          <button class="btn btn-primary full-width" id="useManualDescBtn">Use This Description</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: Resume Tailor -->
-    <div class="tab-pane hidden" id="tab-resume">
-      <div class="action-card">
-        <div class="action-icon">✨</div>
-        <div class="action-info">
-          <div class="action-title">AI Resume Tailor</div>
-          <div class="action-desc">Tailors your structured resume, opens a polished preview, and lets you export the final PDF.</div>
-        </div>
-      </div>
-      <button class="btn btn-primary full-width mt-12" id="tailorResumeBtn">
-        ✨ Tailor My Resume
-      </button>
-      <div class="ai-loading hidden" id="resumeLoading">
-        <div class="ai-spinner"></div>
-        <span>Gemini is tailoring your resume...</span>
-      </div>
-      <div class="result-box hidden" id="resumeResult">
-        <div class="result-header">
-          <span class="result-label">Tailored Resume</span>
-          <button class="copy-btn" data-target="resumeContent">📋 Copy</button>
-        </div>
-        <div class="result-text" id="resumeContent"></div>
-        <div style="padding:0 14px 14px;">
-          <button class="btn btn-primary full-width hidden" id="openResumePreviewBtn" type="button">Open Preview</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: Cover Letter -->
-    <div class="tab-pane hidden" id="tab-cover">
-      <div class="action-card">
-        <div class="action-icon">📝</div>
-        <div class="action-info">
-          <div class="action-title">Cover Letter Generator</div>
-          <div class="action-desc">Generates a personalized, compelling cover letter for this specific role and company.</div>
-        </div>
-      </div>
-      <button class="btn btn-primary full-width mt-12" id="genCoverBtn">
-        📝 Generate Cover Letter
-      </button>
-      <div class="ai-loading hidden" id="coverLoading">
-        <div class="ai-spinner"></div>
-        <span>Gemini is writing your cover letter...</span>
-      </div>
-      <div class="result-box hidden" id="coverResult">
-        <div class="result-header">
-          <span class="result-label">Cover Letter</span>
-          <button class="copy-btn" data-target="coverContent">📋 Copy</button>
-        </div>
-        <div class="result-text" id="coverContent"></div>
-      </div>
-    </div>
-
-    <!-- Tab: ATS Score -->
-    <div class="tab-pane hidden" id="tab-ats">
-      <div class="action-card">
-        <div class="action-icon">📊</div>
-        <div class="action-info">
-          <div class="action-title">ATS Score Checker</div>
-          <div class="action-desc">Analyzes keyword match between your resume and the job description.</div>
-        </div>
-      </div>
-      <button class="btn btn-primary full-width mt-12" id="checkATSBtn">
-        📊 Check ATS Score
-      </button>
-      <div class="ai-loading hidden" id="atsLoading">
-        <div class="ai-spinner"></div>
-        <span>Analyzing ATS compatibility...</span>
-      </div>
-      <div class="ats-result hidden" id="atsResult">
-        <div class="score-container">
-          <svg class="score-ring" viewBox="0 0 120 120">
-            <circle class="ring-bg" cx="60" cy="60" r="50"/>
-            <circle class="ring-fill" cx="60" cy="60" r="50" id="scoreRing"
-              stroke-dasharray="314.16" stroke-dashoffset="314.16"
-              transform="rotate(-90 60 60)"/>
+      <div class="header-actions">
+        <button class="icon-btn" id="settingsBtn" title="Settings">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
           </svg>
-          <div class="score-label">
-            <div class="score-value" id="scoreValue">0%</div>
-            <div class="score-sub" id="scoreLabel">ATS Match</div>
-          </div>
-        </div>
-
-        <div class="kw-section">
-          <div class="kw-title matched">✅ Matched Keywords</div>
-          <div class="kw-chips" id="matchedKw"></div>
-        </div>
-        <div class="kw-section mt-8">
-          <div class="kw-title missing">❌ Missing Keywords</div>
-          <div class="kw-chips" id="missingKw"></div>
-        </div>
-        <div class="result-box mt-12">
-          <div class="result-header">
-            <span class="result-label">💡 Suggestions</span>
-          </div>
-          <div class="result-text" id="atsSuggestions"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: Resume Builder -->
-    <div class="tab-pane hidden" id="tab-builder">
-      <div class="action-card">
-        <div class="action-icon">🏗️</div>
-        <div class="action-info">
-          <div class="action-title">Resume Builder</div>
-          <div class="action-desc">AI parses your resume into structured, editable fields automatically.</div>
-        </div>
-      </div>
-      <button class="btn btn-primary full-width mt-12" id="parseResumeBtn">
-        🤖 Parse My Resume into Fields
-      </button>
-      <div class="ai-loading hidden" id="builderLoading">
-        <div class="ai-spinner"></div>
-        <span>Parsing resume into structured fields...</span>
-      </div>
-
-      <div id="builderFields" class="hidden">
-
-        <!-- Personal Information -->
-        <div class="builder-section">
-          <div class="builder-section-title">👤 Personal Information</div>
-          <div class="form-row-2">
-            <div class="form-group"><label class="form-label">First Name</label><input type="text" id="b-firstName" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Last Name</label><input type="text" id="b-lastName" class="form-input" /></div>
-          </div>
-          <div class="form-row-2">
-            <div class="form-group"><label class="form-label">Email</label><input type="email" id="b-email" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Phone</label><input type="text" id="b-phone" class="form-input" /></div>
-          </div>
-          <div class="form-group"><label class="form-label">Location</label><input type="text" id="b-location" class="form-input" /></div>
-          <div class="form-group"><label class="form-label">LinkedIn URL</label><input type="text" id="b-linkedin" class="form-input" /></div>
-          <div class="form-group"><label class="form-label">GitHub URL</label><input type="text" id="b-github" class="form-input" /></div>
-        </div>
-
-        <!-- Summary -->
-        <div class="builder-section">
-          <div class="builder-section-title">📝 Summary</div>
-          <textarea id="b-summary" class="form-textarea builder-textarea"></textarea>
-        </div>
-
-        <!-- Work Experience -->
-        <div class="builder-section">
-          <div class="builder-section-title-row">
-            <div class="builder-section-title">💼 Work Experience</div>
-            <button class="add-entry-btn" id="addExpBtn">+ Add</button>
-          </div>
-          <div id="b-experience-list"></div>
-        </div>
-
-        <!-- Education -->
-        <div class="builder-section">
-          <div class="builder-section-title-row">
-            <div class="builder-section-title">🎓 Education</div>
-            <button class="add-entry-btn" id="addEduBtn">+ Add</button>
-          </div>
-          <div id="b-education-list"></div>
-        </div>
-
-        <!-- Skills (categorized) -->
-        <div class="builder-section">
-          <div class="builder-section-title">🛠️ Skills</div>
-          <div id="b-skills-container"></div>
-        </div>
-
-        <!-- Projects -->
-        <div class="builder-section">
-          <div class="builder-section-title-row">
-            <div class="builder-section-title">🚀 Projects</div>
-            <button class="add-entry-btn" id="addProjectBtn">+ Add</button>
-          </div>
-          <div id="b-projects-list"></div>
-        </div>
-
-        <!-- Additional Information -->
-        <div class="builder-section">
-          <div class="builder-section-title">📋 Additional Information</div>
-
-          <div class="additional-subsection">
-            <div class="additional-title-row">
-              <span class="additional-label">Certifications</span>
-              <button class="add-entry-btn" id="addCertBtn">+ Add</button>
-            </div>
-            <div id="b-cert-list"></div>
-          </div>
-
-          <div class="additional-subsection">
-            <div class="additional-title-row">
-              <span class="additional-label">Achievements</span>
-              <button class="add-entry-btn" id="addAchievementBtn">+ Add</button>
-            </div>
-            <div id="b-achievement-list"></div>
-          </div>
-
-          <div class="additional-subsection">
-            <div class="additional-title-row">
-              <span class="additional-label">Languages</span>
-              <button class="add-entry-btn" id="addLanguageBtn">+ Add</button>
-            </div>
-            <div id="b-language-list"></div>
-          </div>
-
-          <div class="additional-subsection">
-            <div class="additional-title-row">
-              <span class="additional-label">Publications</span>
-              <button class="add-entry-btn" id="addPublicationBtn">+ Add</button>
-            </div>
-            <div id="b-publication-list"></div>
-          </div>
-        </div>
-
-        <button class="btn btn-primary full-width mt-12" id="saveBuilderBtn">
-          💾 Save Resume Fields
         </button>
-
       </div>
     </div>
 
-  </div>
+    <!-- ── SETTINGS PANEL ── -->
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-header">
+        <span>⚙ Settings & Profile</span>
+        <button class="icon-btn small" id="closeSettings">✕</button>
+      </div>
+      <div class="settings-body">
+        <div class="form-group">
+          <label class="form-label"
+            >Gemini API Key <span class="req">*</span></label
+          >
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="apiKeyInput"
+              class="form-input"
+              placeholder="AIzaSy..."
+              autocomplete="off"
+            />
+            <button class="toggle-vis" id="toggleKey" type="button">👁</button>
+          </div>
+          <p class="form-hint">
+            Get free key at
+            <a href="https://aistudio.google.com/app/apikey" target="_blank"
+              >aistudio.google.com</a
+            >
+          </p>
+        </div>
 
-  <!-- ── TOAST NOTIFICATIONS ── -->
-  <div class="toast" id="toast"></div>
+        <div class="form-group">
+          <label class="form-label">Your Full Name</label>
+          <input
+            type="text"
+            id="nameInput"
+            class="form-input"
+            placeholder="Lokesh Kumar"
+          />
+        </div>
 
-  <script src="../utils/gemini.js"></script>
-  <script src="popup.js"></script>
-</body>
+        <div class="form-group">
+          <label class="form-label">Your Email</label>
+          <input
+            type="email"
+            id="emailInput"
+            class="form-input"
+            placeholder="lokesh@example.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Skills (comma-separated)</label>
+          <input
+            type="text"
+            id="skillsInput"
+            class="form-input"
+            placeholder="React, Node.js, Firebase..."
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label"
+            >Base Resume (paste full text) <span class="req">*</span></label
+          >
+          <textarea
+            id="resumeInput"
+            class="form-textarea"
+            placeholder="Paste your full resume text here. AI will tailor this for each job..."
+          ></textarea>
+        </div>
+
+        <button class="btn btn-primary" id="saveSettings">
+          <span>Save Profile</span>
+        </button>
+        <div class="save-toast" id="saveToast">✅ Saved!</div>
+      </div>
+      <div class="settings-footer">
+        Made with ❤️ by
+        <a href="https://github.com/lokesh267272" target="_blank">
+          Sunkara Lokesh</a
+        >
+      </div>
+    </div>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="main" id="mainContent">
+      <!-- Job Detection Banner -->
+      <div class="detect-banner" id="detectBanner">
+        <div class="detect-dot" id="detectDot"></div>
+        <span id="detectText">Analyzing page...</span>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab active" data-tab="job">
+          <span class="tab-icon">🔍</span> Job
+        </button>
+        <button class="tab" data-tab="resume">
+          <span class="tab-icon">📄</span> Resume
+        </button>
+        <button class="tab" data-tab="cover">
+          <span class="tab-icon">✉️</span> Cover
+        </button>
+        <button class="tab" data-tab="ats">
+          <span class="tab-icon">📊</span> ATS
+        </button>
+        <button class="tab" data-tab="builder">
+          <span class="tab-icon">🏗️</span> Build
+        </button>
+      </div>
+
+      <!-- Tab: Job Details -->
+      <div class="tab-pane active" id="tab-job">
+        <button class="btn btn-extract full-width" id="extractJobBtn">
+          🔄 Extract Job Description
+        </button>
+        <div class="loading-state" id="jobLoading">
+          <div class="spinner"></div>
+          <p>Extracting job details...</p>
+        </div>
+
+        <div id="jobDetails" class="hidden">
+          <div class="job-card">
+            <div class="job-title" id="jobTitle">—</div>
+            <div class="job-company" id="jobCompany">—</div>
+            <div class="job-chips">
+              <span class="chip" id="jobLocation">—</span>
+              <span class="chip secondary" id="jobPlatform">—</span>
+            </div>
+            <div class="divider"></div>
+            <div class="desc-label-row">
+              <div class="section-label">Job Description</div>
+              <span class="edit-hint">✏️ editable</span>
+            </div>
+            <textarea
+              class="job-desc-text"
+              id="jobDesc"
+              placeholder="Job description will appear here. You can also edit or paste it manually."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="empty-state hidden" id="jobError">
+          <div class="empty-icon">🔍</div>
+          <p class="empty-title">No Job Detected</p>
+          <p class="empty-sub">
+            Navigate to a job listing, or paste the job description below.
+          </p>
+          <div class="manual-paste-area">
+            <textarea
+              id="manualJobDesc"
+              class="form-textarea manual-desc-input"
+              placeholder="Paste the job description here..."
+            ></textarea>
+            <button class="btn btn-primary full-width" id="useManualDescBtn">
+              Use This Description
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Resume Tailor -->
+      <div class="tab-pane hidden" id="tab-resume">
+        <div class="action-card">
+          <div class="action-icon">✨</div>
+          <div class="action-info">
+            <div class="action-title">AI Resume Tailor</div>
+            <div class="action-desc">
+              Tailors your structured resume, opens a polished preview, and lets
+              you export the final PDF.
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary full-width mt-12" id="tailorResumeBtn">
+          ✨ Tailor My Resume
+        </button>
+        <div class="ai-loading hidden" id="resumeLoading">
+          <div class="ai-spinner"></div>
+          <span>Gemini is tailoring your resume...</span>
+        </div>
+        <div class="result-box hidden" id="resumeResult">
+          <div class="result-header">
+            <span class="result-label">Tailored Resume</span>
+            <button class="copy-btn" data-target="resumeContent">
+              📋 Copy
+            </button>
+          </div>
+          <div class="result-text" id="resumeContent"></div>
+          <div style="padding: 0 14px 14px">
+            <button
+              class="btn btn-primary full-width hidden"
+              id="openResumePreviewBtn"
+              type="button"
+            >
+              Open Preview
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Cover Letter -->
+      <div class="tab-pane hidden" id="tab-cover">
+        <div class="action-card">
+          <div class="action-icon">📝</div>
+          <div class="action-info">
+            <div class="action-title">Cover Letter Generator</div>
+            <div class="action-desc">
+              Generates a personalized, compelling cover letter for this
+              specific role and company.
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary full-width mt-12" id="genCoverBtn">
+          📝 Generate Cover Letter
+        </button>
+        <div class="ai-loading hidden" id="coverLoading">
+          <div class="ai-spinner"></div>
+          <span>Gemini is writing your cover letter...</span>
+        </div>
+        <div class="result-box hidden" id="coverResult">
+          <div class="result-header">
+            <span class="result-label">Cover Letter</span>
+            <button class="copy-btn" data-target="coverContent">📋 Copy</button>
+          </div>
+          <div class="result-text" id="coverContent"></div>
+        </div>
+      </div>
+
+      <!-- Tab: ATS Score -->
+      <div class="tab-pane hidden" id="tab-ats">
+        <div class="action-card">
+          <div class="action-icon">📊</div>
+          <div class="action-info">
+            <div class="action-title">ATS Score Checker</div>
+            <div class="action-desc">
+              Analyzes keyword match between your resume and the job
+              description.
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary full-width mt-12" id="checkATSBtn">
+          📊 Check ATS Score
+        </button>
+        <div class="ai-loading hidden" id="atsLoading">
+          <div class="ai-spinner"></div>
+          <span>Analyzing ATS compatibility...</span>
+        </div>
+        <div class="ats-result hidden" id="atsResult">
+          <div class="score-container">
+            <svg class="score-ring" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="50" />
+              <circle
+                class="ring-fill"
+                cx="60"
+                cy="60"
+                r="50"
+                id="scoreRing"
+                stroke-dasharray="314.16"
+                stroke-dashoffset="314.16"
+                transform="rotate(-90 60 60)"
+              />
+            </svg>
+            <div class="score-label">
+              <div class="score-value" id="scoreValue">0%</div>
+              <div class="score-sub" id="scoreLabel">ATS Match</div>
+            </div>
+          </div>
+
+          <div class="kw-section">
+            <div class="kw-title matched">✅ Matched Keywords</div>
+            <div class="kw-chips" id="matchedKw"></div>
+          </div>
+          <div class="kw-section mt-8">
+            <div class="kw-title missing">❌ Missing Keywords</div>
+            <div class="kw-chips" id="missingKw"></div>
+          </div>
+          <div class="result-box mt-12">
+            <div class="result-header">
+              <span class="result-label">💡 Suggestions</span>
+            </div>
+            <div class="result-text" id="atsSuggestions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Resume Builder -->
+      <div class="tab-pane hidden" id="tab-builder">
+        <div class="action-card">
+          <div class="action-icon">🏗️</div>
+          <div class="action-info">
+            <div class="action-title">Resume Builder</div>
+            <div class="action-desc">
+              AI parses your resume into structured, editable fields
+              automatically.
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary full-width mt-12" id="parseResumeBtn">
+          🤖 Parse My Resume into Fields
+        </button>
+        <div class="ai-loading hidden" id="builderLoading">
+          <div class="ai-spinner"></div>
+          <span>Parsing resume into structured fields...</span>
+        </div>
+
+        <div id="builderFields" class="hidden">
+          <!-- Personal Information -->
+          <div class="builder-section">
+            <div class="builder-section-title">👤 Personal Information</div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">First Name</label
+                ><input type="text" id="b-firstName" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name</label
+                ><input type="text" id="b-lastName" class="form-input" />
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Email</label
+                ><input type="email" id="b-email" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone</label
+                ><input type="text" id="b-phone" class="form-input" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location</label
+              ><input type="text" id="b-location" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">LinkedIn URL</label
+              ><input type="text" id="b-linkedin" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">GitHub URL</label
+              ><input type="text" id="b-github" class="form-input" />
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="builder-section">
+            <div class="builder-section-title">📝 Summary</div>
+            <textarea
+              id="b-summary"
+              class="form-textarea builder-textarea"
+            ></textarea>
+          </div>
+
+          <!-- Work Experience -->
+          <div class="builder-section">
+            <div class="builder-section-title-row">
+              <div class="builder-section-title">💼 Work Experience</div>
+              <button class="add-entry-btn" id="addExpBtn">+ Add</button>
+            </div>
+            <div id="b-experience-list"></div>
+          </div>
+
+          <!-- Education -->
+          <div class="builder-section">
+            <div class="builder-section-title-row">
+              <div class="builder-section-title">🎓 Education</div>
+              <button class="add-entry-btn" id="addEduBtn">+ Add</button>
+            </div>
+            <div id="b-education-list"></div>
+          </div>
+
+          <!-- Skills (categorized) -->
+          <div class="builder-section">
+            <div class="builder-section-title">🛠️ Skills</div>
+            <div id="b-skills-container"></div>
+          </div>
+
+          <!-- Projects -->
+          <div class="builder-section">
+            <div class="builder-section-title-row">
+              <div class="builder-section-title">🚀 Projects</div>
+              <button class="add-entry-btn" id="addProjectBtn">+ Add</button>
+            </div>
+            <div id="b-projects-list"></div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="builder-section">
+            <div class="builder-section-title">📋 Additional Information</div>
+
+            <div class="additional-subsection">
+              <div class="additional-title-row">
+                <span class="additional-label">Certifications</span>
+                <button class="add-entry-btn" id="addCertBtn">+ Add</button>
+              </div>
+              <div id="b-cert-list"></div>
+            </div>
+
+            <div class="additional-subsection">
+              <div class="additional-title-row">
+                <span class="additional-label">Achievements</span>
+                <button class="add-entry-btn" id="addAchievementBtn">
+                  + Add
+                </button>
+              </div>
+              <div id="b-achievement-list"></div>
+            </div>
+
+            <div class="additional-subsection">
+              <div class="additional-title-row">
+                <span class="additional-label">Languages</span>
+                <button class="add-entry-btn" id="addLanguageBtn">+ Add</button>
+              </div>
+              <div id="b-language-list"></div>
+            </div>
+
+            <div class="additional-subsection">
+              <div class="additional-title-row">
+                <span class="additional-label">Publications</span>
+                <button class="add-entry-btn" id="addPublicationBtn">
+                  + Add
+                </button>
+              </div>
+              <div id="b-publication-list"></div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary full-width mt-12" id="saveBuilderBtn">
+            💾 Save Resume Fields
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div class="main-footer">
+      Made with ❤️ by
+      <a href="https://github.com/lokesh267272" target="_blank"
+        >Sunkara Lokesh</a
+      >
+    </div>
+
+    <!-- ── TOAST NOTIFICATIONS ── -->
+    <div class="toast" id="toast"></div>
+
+    <script src="../utils/gemini.js"></script>
+    <script src="popup.js"></script>
+  </body>
 </html>
