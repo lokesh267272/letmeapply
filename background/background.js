@@ -1,5 +1,7 @@
 // ── LETMEAPPLY BACKGROUND SERVICE WORKER ──
 
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log('[LetMeApply] Extension installed. Open a job page to get started!');

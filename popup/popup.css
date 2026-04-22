@@ -22,9 +22,9 @@
 }
 
 html, body {
-  width: 400px;
-  min-height: 480px;
-  max-height: 600px;
+  width: 100%;
+  min-width: 300px;
+  height: 100vh;
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
@@ -233,7 +233,7 @@ html, body {
 .main {
   display: flex;
   flex-direction: column;
-  height: calc(600px - 57px);
+  height: calc(100vh - 57px);
   overflow: hidden;
 }
 
@@ -504,6 +504,22 @@ html, body {
 }
 
 .full-width { width: 100%; }
+
+.btn-extract {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-extract:hover {
+  border-color: var(--accent);
+  color: var(--accent2);
+  background: var(--accent-glow);
+}
 
 .mt-12 { margin-top: 4px; }
 .mt-8  { margin-top: 8px; }

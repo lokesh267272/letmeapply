@@ -289,6 +289,12 @@ function renderJobDetails(data) {
 
 // ── ACTION BUTTONS ──
 function setupActions() {
+  $('extractJobBtn').addEventListener('click', () => {
+    $('jobDetails').classList.add('hidden');
+    $('jobError').classList.add('hidden');
+    $('jobLoading').classList.remove('hidden');
+    detectJob();
+  });
   $('tailorResumeBtn').addEventListener('click', () => handleTailorResume());
   $('genCoverBtn').addEventListener('click', () => handleCoverLetter());
   $('checkATSBtn').addEventListener('click', () => handleATSScore());
