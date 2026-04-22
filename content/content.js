@@ -59,6 +59,42 @@
     return String(value || '').replace(/\s+/g, ' ').trim();
   }
 
+  // ── IFRAME-AWARE HELPERS ──
+
+  function getAllDocs() {
+    const docs = [document];
+    try {
+      const frames = Array.from(document.querySelectorAll('iframe'));
+      for (const frame of frames) {
+        try {
+          const cd = frame.contentDocument;
+          if (cd && cd.body) docs.push(cd);
+        } catch { /* cross-origin, skip */ }
+      }
+    } catch { /* querySelectorAll failed */ }
+    return docs;
+  }
+
+  function queryAcrossDocs(selector) {
+    for (const doc of getAllDocs()) {
+      try {
+        const el = doc.querySelector(selector);
+        if (el) return el;
+      } catch { /* bad selector or access error */ }
+    }
+    return null;
+  }
+
+  function queryAllAcrossDocs(selector) {
+    const results = [];
+    for (const doc of getAllDocs()) {
+      try {
+        doc.querySelectorAll(selector).forEach(el => results.push(el));
+      } catch { /* skip */ }
+    }
+    return results;
+  }
+
   function getLinkedInDetailRoot() {
     const roots = [
       '.jobs-search__job-details--container',
@@ -69,14 +105,25 @@
       '.jobs-unified-top-card'
     ];
 
-    for (const sel of roots) {
-      const el = document.querySelector(sel);
-      if (el && cleanText(el.innerText).length > 120) {
-        return el;
+    for (const doc of getAllDocs()) {
+      for (const sel of roots) {
+        try {
+          const el = doc.querySelector(sel);
+          if (el && cleanText(el.innerText).length > 120) return el;
+        } catch { /* skip */ }
       }
     }
 
-    return document.body;
+    // Fall back to whichever doc body has the most content
+    let bestBody = document.body;
+    for (const doc of getAllDocs()) {
+      try {
+        if ((doc.body?.innerText || '').length > (bestBody?.innerText || '').length) {
+          bestBody = doc.body;
+        }
+      } catch { /* cross-origin */ }
+    }
+    return bestBody;
   }
 
   function getTextFromWithin(root, selectors) {
@@ -187,64 +234,106 @@
   // ── EXTRACTORS ──
 
   function extractLinkedIn() {
-    const root = document.querySelector(
+    let title = '', company = '', location = '', description = '', recruiter = '', recruiterCompany = '';
+
+    // ── TIER 1: SDUI selectors (new LinkedIn layout) ──
+    const sduiRoot = queryAcrossDocs(
       'div[data-sdui-screen="com.linkedin.sdui.flagshipnav.jobs.SemanticJobDetails"]'
     );
-    if (!root) {
-      return {
-        platform: 'LinkedIn',
-        title: document.title.split(' | ')[0],
-        company: '',
-        location: '',
-        description: '',
-        recruiter: '',
-        recruiterCompany: '',
-        url: window.location.href
-      };
+
+    if (sduiRoot) {
+      const titleEl = scopedQuery(sduiRoot, 'a[href*="/jobs/view/"]');
+      title = titleEl ? cleanText(titleEl.innerText) : '';
+
+      const companyLinks = Array.from(sduiRoot.querySelectorAll('a[href*="/company/"]'));
+      recruiterCompany = companyLinks.map(el => cleanText(el.innerText)).find(t => t) || '';
+
+      location = (() => {
+        const lines = (sduiRoot.innerText || '').split('\n').map(s => s.trim()).filter(Boolean);
+        return lines.find(line => {
+          const l = line.toLowerCase();
+          return l.includes('on-site') || l.includes('remote') || l.includes('hybrid') ||
+            /\b(india|united states|canada|uk|bengaluru|bangalore|hyderabad|chennai|pune|mumbai|delhi)\b/i.test(line);
+        }) || '';
+      })();
+
+      const recruiterBlock = scopedQuery(
+        sduiRoot,
+        'div[data-sdui-component="com.linkedin.sdui.generated.jobseeker.dsl.impl.peopleWhoCanHelp"]'
+      );
+      if (recruiterBlock) {
+        const profileLink = scopedQuery(recruiterBlock, 'a[href*="/in/"]');
+        if (profileLink) recruiter = cleanText(profileLink.innerText);
+      }
+
+      const descBlock = scopedQuery(
+        sduiRoot,
+        'div[data-sdui-component="com.linkedin.sdui.generated.jobseeker.dsl.impl.aboutTheJob"]'
+      );
+      if (descBlock) {
+        const expandable = scopedQuery(descBlock, 'span[data-testid="expandable-text-box"]');
+        const textEl = expandable || descBlock;
+        description = (textEl.innerText || '').trim().replace(/^about the job\s*/i, '').trim();
+      }
     }
 
-    const titleEl = scopedQuery(root, 'a[href*="/jobs/view/"]');
-    const title = titleEl ? cleanText(titleEl.innerText) : document.title.split(' | ')[0];
-
-    const companyLinks = Array.from(root.querySelectorAll('a[href*="/company/"]'));
-    const recruiterCompany = companyLinks.map(el => cleanText(el.innerText)).find(t => t) || '';
-
-    const jobLocation = (() => {
-      const lines = root.innerText.split('\n').map(s => s.trim()).filter(Boolean);
-      return lines.find(line => {
-        const l = line.toLowerCase();
-        return l.includes('on-site') || l.includes('remote') || l.includes('hybrid') ||
-          /\b(india|united states|canada|uk|bengaluru|bangalore|hyderabad|chennai|pune|mumbai|delhi)\b/i.test(line);
-      }) || '';
-    })();
-
-    const recruiterBlock = scopedQuery(
-      root,
-      'div[data-sdui-component="com.linkedin.sdui.generated.jobseeker.dsl.impl.peopleWhoCanHelp"]'
-    );
-    let recruiter = '';
-    if (recruiterBlock) {
-      const profileLink = scopedQuery(recruiterBlock, 'a[href*="/in/"]');
-      if (profileLink) recruiter = cleanText(profileLink.innerText);
+    // ── TIER 2: Legacy (Ember/non-SDUI) selectors — fill any gaps ──
+    if (!title) {
+      const titleEl = queryAcrossDocs([
+        'h1.job-details-jobs-unified-top-card__job-title',
+        '.jobs-unified-top-card__job-title',
+        '.job-details-jobs-unified-top-card__job-title a'
+      ].join(', '));
+      title = titleEl ? cleanText(titleEl.innerText) : '';
     }
+
+    if (!recruiterCompany) {
+      const companyEl = queryAcrossDocs([
+        '.job-details-jobs-unified-top-card__company-name a',
+        '.jobs-unified-top-card__company-name a',
+        '.job-details-jobs-unified-top-card__company-name',
+        '.jobs-unified-top-card__company-name'
+      ].join(', '));
+      recruiterCompany = companyEl ? cleanText(companyEl.innerText) : '';
+    }
+
+    if (!location) {
+      const locEl = queryAcrossDocs([
+        '.job-details-jobs-unified-top-card__primary-description-container',
+        '.jobs-unified-top-card__bullet',
+        '.jobs-unified-top-card__workplace-type'
+      ].join(', '));
+      location = locEl ? cleanText(locEl.innerText) : '';
+    }
+
+    if (!description) {
+      const descEl = queryAcrossDocs([
+        '.jobs-description__content',
+        '.jobs-description-content',
+        '.jobs-box__html-content',
+        '.jobs-description__container',
+        '.jobs-description'
+      ].join(', '));
+      if (descEl) {
+        description = (descEl.innerText || '').trim().replace(/^about the job\s*/i, '').trim();
+      }
+    }
+
+    // ── TIER 3: Text-based fallbacks — last resort ──
+    const fallbackRoot = getLinkedInDetailRoot();
+
+    if (!title) title = getLinkedInTitleFallback(fallbackRoot);
+    if (!recruiterCompany) recruiterCompany = getLinkedInCompanyFallback(fallbackRoot);
+    if (!location) location = getLinkedInLocationFallback(fallbackRoot);
+    if (!description) description = getLinkedInDescriptionFallback();
+
     if (!recruiter) recruiter = recruiterCompany;
-
-    const descBlock = scopedQuery(
-      root,
-      'div[data-sdui-component="com.linkedin.sdui.generated.jobseeker.dsl.impl.aboutTheJob"]'
-    );
-    let description = '';
-    if (descBlock) {
-      const expandable = scopedQuery(descBlock, 'span[data-testid="expandable-text-box"]');
-      const textEl = expandable || descBlock;
-      description = (textEl.innerText || '').trim().replace(/^about the job\s*/i, '').trim();
-    }
 
     return {
       platform: 'LinkedIn',
-      title,
+      title: title || document.title.split(' | ')[0],
       company: recruiterCompany,
-      location: jobLocation,
+      location,
       description,
       recruiter,
       recruiterCompany,

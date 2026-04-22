@@ -26,19 +26,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── LOAD PROFILE ──
 async function loadProfile() {
   return new Promise(resolve => {
-    chrome.storage.local.get(['apiKey', 'name', 'email', 'skills', 'resume'], (data) => {
+    chrome.storage.local.get(['apiKey', 'name', 'email', 'resume'], (data) => {
       apiKey = data.apiKey || '';
       profile = {
         name: data.name || '',
         email: data.email || '',
-        skills: data.skills || '',
         resume: data.resume || ''
       };
       // Pre-fill settings form
       if ($('apiKeyInput')) $('apiKeyInput').value = apiKey;
       if ($('nameInput'))   $('nameInput').value = profile.name;
       if ($('emailInput'))  $('emailInput').value = profile.email;
-      if ($('skillsInput')) $('skillsInput').value = profile.skills;
       if ($('resumeInput')) $('resumeInput').value = profile.resume;
       resolve();
     });
@@ -154,14 +152,12 @@ function setupSettings() {
     apiKey = $('apiKeyInput').value.trim();
     profile.name = $('nameInput').value.trim();
     profile.email = $('emailInput').value.trim();
-    profile.skills = $('skillsInput').value.trim();
     profile.resume = $('resumeInput').value.trim();
 
     chrome.storage.local.set({
       apiKey,
       name: profile.name,
       email: profile.email,
-      skills: profile.skills,
       resume: profile.resume
     }, () => {
       const toast = $('saveToast');
