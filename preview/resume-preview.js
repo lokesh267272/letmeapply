@@ -2,12 +2,22 @@ const PREVIEW_STORAGE_KEY = "tailoredResumePreview";
 const BACKEND_URL = "http://127.0.0.1:3001/generate-pdf";
 
 let previewState = null;
+let currentTemplate = "classic";
 
 const $ = (id) => document.getElementById(id);
 
 document.addEventListener("DOMContentLoaded", async () => {
   $("downloadPdfBtn").addEventListener("click", handleDownloadPdf);
   $("refreshPreviewBtn").addEventListener("click", loadPreviewState);
+
+  document.querySelectorAll(".tpl-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentTemplate = btn.dataset.template;
+      document.querySelectorAll(".tpl-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderPreview();
+    });
+  });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local" || !changes[PREVIEW_STORAGE_KEY]) return;
@@ -46,7 +56,7 @@ function renderPreview() {
   resumeStage.classList.remove("hidden");
   $("downloadPdfBtn").disabled = false;
 
-  resumeMount.innerHTML = ResumeRenderer.buildResumeContentMarkup(previewState.resumeData);
+  resumeMount.innerHTML = ResumeRenderer.buildResumeContentMarkup(previewState.resumeData, { template: currentTemplate });
   document.title = `${ResumeRenderer.getResumeTitle(previewState.resumeData)} - Tailored Resume Preview`;
   meta.textContent = buildPreviewMeta(previewState);
   clearStatus();
@@ -107,7 +117,8 @@ async function handleDownloadPdf() {
       },
       body: JSON.stringify({
         fileName,
-        resumeData: previewState.resumeData
+        resumeData: previewState.resumeData,
+        template: currentTemplate
       })
     });
 

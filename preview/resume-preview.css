@@ -278,6 +278,116 @@ a {
   background: var(--text);
 }
 
+/* ── Template picker ── */
+.template-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.template-picker-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.template-options {
+  display: flex;
+  gap: 6px;
+}
+
+.tpl-btn {
+  border: 1.5px solid rgba(17, 17, 17, 0.18);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.tpl-btn:hover {
+  border-color: var(--text);
+}
+
+.tpl-btn.active {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+
+/* ── Template: Modern ── */
+.page.template-modern {
+  font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.page.template-modern .resume-header {
+  text-align: left;
+  margin-bottom: 9px;
+}
+
+.page.template-modern .resume-header h1 {
+  font-size: 28px;
+}
+
+.page.template-modern .contact-line {
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.page.template-modern .resume-section {
+  margin-top: 12px;
+}
+
+.page.template-modern .resume-section h2 {
+  border-bottom: none;
+  border-left: 2.5px solid var(--text);
+  padding-left: 8px;
+  padding-bottom: 0;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  line-height: 1.5;
+}
+
+.page.template-modern .entry {
+  margin-top: 7px;
+}
+
+/* ── Template: Executive ── */
+.page.template-executive .resume-header {
+  border-bottom: 1.5px solid var(--line);
+  padding-bottom: 9px;
+  margin-bottom: 11px;
+}
+
+.page.template-executive .resume-header h1 {
+  font-size: 28px;
+  letter-spacing: 0.03em;
+}
+
+.page.template-executive .resume-section {
+  margin-top: 12px;
+}
+
+.page.template-executive .resume-section h2 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  border-bottom: 0.8px solid #777;
+  margin: 0 0 5px;
+  padding-bottom: 2px;
+}
+
+.page.template-executive .entry {
+  margin-top: 7px;
+}
+
 @media (max-width: 980px) {
   body {
     padding: 14px;
@@ -286,6 +396,10 @@ a {
   .preview-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .template-picker {
+    align-items: flex-start;
   }
 
   .preview-actions {

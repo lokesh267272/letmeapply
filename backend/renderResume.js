@@ -2,6 +2,7 @@ const { buildResumeContentMarkup, getResumeTitle } = require("../utils/resumeRen
 
 function buildResumeHtml(payload = {}) {
   const title = getResumeTitle(payload);
+  const template = String(payload.template || "classic");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -175,10 +176,70 @@ function buildResumeHtml(payload = {}) {
         color: var(--muted);
       }
     }
+
+    /* ── Template: Modern ── */
+    .template-modern {
+      font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    }
+    .template-modern .resume-header {
+      text-align: left;
+      margin-bottom: 9px;
+    }
+    .template-modern .resume-header h1 {
+      font-size: 28px;
+    }
+    .template-modern .contact-line {
+      justify-content: flex-start;
+      gap: 4px;
+    }
+    .template-modern .resume-section {
+      margin-top: 12px;
+    }
+    .template-modern .resume-section h2 {
+      border-bottom: none;
+      border-left: 2.5px solid var(--text);
+      padding-left: 8px;
+      padding-bottom: 0;
+      font-size: 11px;
+      letter-spacing: 0.09em;
+      line-height: 1.5;
+    }
+    .template-modern .entry {
+      margin-top: 7px;
+    }
+
+    /* ── Template: Executive ── */
+    .template-executive .resume-header {
+      border-bottom: 1.5px solid var(--line);
+      padding-bottom: 9px;
+      margin-bottom: 11px;
+    }
+    .template-executive .resume-header h1 {
+      font-size: 28px;
+      letter-spacing: 0.03em;
+    }
+    .template-executive .resume-section {
+      margin-top: 12px;
+    }
+    .template-executive .resume-section h2 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0.01em;
+      border-bottom: 0.8px solid #777;
+      margin: 0 0 5px;
+      padding-bottom: 2px;
+    }
+    .template-executive .entry {
+      margin-top: 7px;
+    }
+    .template-executive .entry-main {
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-  ${buildResumeContentMarkup(payload)}
+  ${buildResumeContentMarkup(payload, { template })}
 </body>
 </html>`;
 }

@@ -213,14 +213,15 @@
     return splitName(personal, input?.name || resume?.name);
   }
 
-  function buildResumeContentMarkup(input) {
+  function buildResumeContentMarkup(input, options) {
     const resume = normalizeResumeData(input);
+    const template = (options && options.template) || "classic";
     const fullName = getResumeTitle(input);
     const summary = String(resume.summary ?? input?.summary ?? "").trim();
     const skillsMarkup = renderSkills(resume.skills || {});
 
     return `
-      <main class="page">
+      <main class="page template-${escapeHtml(template)}">
         <header class="resume-header">
           <h1>${escapeHtml(fullName)}</h1>
           ${buildContactLine(resume)}
