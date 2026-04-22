@@ -44,7 +44,7 @@ app.post("/generate-pdf", async (req, res) => {
     });
 
     const pdf = await page.pdf({
-      format: "Letter",
+      format: "A4",
       printBackground: true,
       displayHeaderFooter: false,
       preferCSSPageSize: true
