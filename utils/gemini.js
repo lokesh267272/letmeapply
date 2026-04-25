@@ -248,43 +248,6 @@ function parseLabeledATSResponse(text) {
 }
 
 /**
- * Tailor resume for a specific job
- */
-async function tailorResume(
-  { jobTitle, company, jobDescription, baseResume, candidateName },
-  apiKey,
-) {
-  const prompt = `You are an expert resume writer and ATS optimization specialist.
-
-CANDIDATE NAME: ${candidateName || "Candidate"}
-
-JOB DETAILS:
-Title: ${jobTitle || "Not specified"}
-Company: ${company || "Not specified"}
-Description:
-${jobDescription}
-
-CURRENT RESUME:
-${baseResume}
-
-TASK: Rewrite and optimize this resume to perfectly match the job description above.
-
-Guidelines:
-- Keep the candidate's actual experience and truthful information, only reframe and reword
-- Match important keywords from the job description naturally throughout
-- Rewrite the professional summary to target this specific role
-- Reorganize bullets to lead with most relevant achievements
-- Ensure ATS compatibility with no tables, columns, or graphics
-- Keep it to 1-2 pages worth of content
-- Format clearly: Summary | Experience | Skills | Education | Certifications (if any)
-- Use strong action verbs and quantify achievements where possible
-
-Return ONLY the tailored resume text with no commentary or markdown fences.`;
-
-  return await callGemini(prompt, apiKey);
-}
-
-/**
  * Tailor a structured resume for a specific job and return structured JSON
  */
 async function tailorResumeStructured(
