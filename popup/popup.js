@@ -495,9 +495,14 @@ async function handleATSScore() {
   $('atsResult').classList.add('hidden');
 
   try {
+    const stored = await storageGet(['tailoredResume']);
+    const resumeForATS = stored.tailoredResume
+      ? JSON.stringify(stored.tailoredResume)
+      : profile.resume;
+
     const result = await checkATSScore({
       jobDescription: jobData.description,
-      resume: profile.resume
+      resume: resumeForATS
     }, apiKey);
 
     renderATSResult(result);
