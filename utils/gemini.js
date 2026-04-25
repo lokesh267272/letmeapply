@@ -291,7 +291,15 @@ async function tailorResumeStructured(
   { jobTitle, company, jobDescription, resumeData, candidateName },
   apiKey,
 ) {
-  const prompt = `You are an expert resume writer and ATS optimization specialist.
+  const prompt = `You are an expert resume writer and ATS (Applicant Tracking System) optimization specialist.
+
+Your job is to transform a structured resume into a highly optimized, job-specific, ATS-friendly version while strictly preserving truthfulness.
+
+You must behave like:
+1) An ATS keyword-matching system
+2) A human recruiter optimizing for clarity, relevance, and impact
+
+---
 
 CANDIDATE NAME: ${candidateName || "Candidate"}
 
@@ -304,26 +312,114 @@ ${jobDescription}
 CURRENT STRUCTURED RESUME JSON:
 ${JSON.stringify(resumeData, null, 2)}
 
-TASK:
-Return an ATS-friendly, job-tailored version of this resume in the exact same schema.
+---
 
-STRICT RULES:
-1. Keep all experience, education, projects, certifications, achievements, languages, and publications truthful.
-2. Do not invent new companies, roles, dates, achievements, projects, certifications, or metrics.
-3. You may improve the summary, reorder bullet points, rewrite bullet wording, and emphasize the most relevant skills.
-4. Keep personal contact fields unchanged unless only formatting cleanup is needed.
-5. Preserve links, dates, company names, school names, and project names unless light cleanup is needed.
-6. Make bullets stronger, more concise, and more relevant to the job description.
-7. Integrate important keywords from the job description naturally and honestly.
-8. Keep the resume concise and ATS friendly.
-9. If a section is empty in the input, keep it empty in the output.
-10. Bullets must remain arrays of strings.
+PRIMARY OBJECTIVE:
+Return a job-tailored version of the resume in the EXACT SAME JSON SCHEMA, optimized for:
+- ATS keyword matching
+- Role relevance
+- Recruiter readability
+- Conciseness and clarity
 
-QUALITY GOALS:
-- Professional summary should be targeted to this role
-- Experience bullets should lead with the most relevant achievements
-- Skills should prioritize the tools and concepts that best match the job
-- Wording should be clear, strong, and recruiter-friendly`;
+---
+
+STRICT RULES (NON-NEGOTIABLE):
+1. Do NOT invent or assume any new experience, companies, roles, dates, projects, certifications, or metrics.
+2. Do NOT exaggerate skills beyond what is already stated.
+3. Only rewrite, reorder, and improve wording of existing content.
+4. Preserve all links, company names, dates, and project names.
+5. Maintain the exact JSON structure and field names.
+6. Bullet points must remain arrays of strings.
+7. If a section is empty, keep it empty.
+8. Output ONLY valid JSON. No explanations, no markdown, no extra text.
+
+---
+
+OPTIMIZATION LOGIC:
+
+1) ROLE DETECTION:
+- Analyze the job description to determine the primary role focus:
+  (e.g., Backend, Frontend, Full Stack, AI/ML, Mobile, DevOps, Data, etc.)
+- Adapt resume focus dynamically based on the job.
+- Do NOT assume any fixed tech stack.
+
+2) KEYWORD EXTRACTION:
+- Identify critical keywords from the job description:
+  - Technologies
+  - Tools
+  - Frameworks
+  - Concepts (e.g., REST APIs, Microservices, OOP, CI/CD)
+- Ensure these keywords are naturally integrated across:
+  - Summary
+  - Skills
+  - Experience
+  - Projects
+- Avoid keyword stuffing.
+
+3) SUMMARY OPTIMIZATION:
+- Rewrite the professional summary to align with the job role.
+- Mention relevant technologies and strengths.
+- Keep it concise (2–4 lines).
+
+4) EXPERIENCE OPTIMIZATION:
+- Reorder bullet points by relevance to the job.
+- Prioritize role-relevant achievements at the top.
+- Rewrite bullets using:
+  Action Verb + Task + Technology + Impact
+- Emphasize problem-solving, scalability, collaboration (Git), debugging, and performance (only if present in original content).
+
+5) PROJECTS OPTIMIZATION:
+- Highlight projects most relevant to the job.
+- Reorder bullets to emphasize:
+  - Matching technologies
+  - Real-world impact
+  - Performance or scalability
+
+6) SKILLS OPTIMIZATION:
+- Reorder skills based on job relevance.
+- Group logically (e.g., Backend, Frontend, Databases, Tools, Cloud).
+- Prioritize skills explicitly mentioned in the job description.
+
+7) CONCISENESS:
+- Remove redundancy.
+- Avoid long or repetitive bullets.
+- Keep resume clean and recruiter-friendly.
+
+8) ATS FORMATTING:
+- Use clear, standard wording.
+- Avoid unusual symbols or formatting.
+
+9) TRUTHFULNESS ENFORCEMENT:
+- If a skill is mentioned as "concepts" or "basic knowledge", do NOT upgrade it to advanced.
+- Do NOT fabricate impact metrics.
+
+---
+
+BULLET POINT LIMITS (STRICT):
+- For each experience entry: MAX 4 bullet points
+- For each project: MAX 3 bullet points
+- For summary: MAX 3–4 lines
+- Do NOT exceed these limits under any condition
+
+BULLET SELECTION LOGIC:
+- If more bullets exist in input:
+  - KEEP the most relevant and high-impact bullets
+  - REMOVE or MERGE weaker or redundant bullets
+- Prioritize:
+  1. Relevance to job description
+  2. Measurable impact (metrics)
+  3. Use of required technologies
+
+BULLET QUALITY STANDARD:
+- Each bullet must follow:
+  Action Verb + What + How + Impact
+- Avoid weak phrasing like:
+  "Worked on", "Responsible for", "Involved in"
+
+---
+
+GOAL:
+Maximize ATS match score AND recruiter shortlisting probability while remaining completely truthful.`;
 
   const raw = await callGemini(prompt, apiKey, {
     temperature: 0.2,
