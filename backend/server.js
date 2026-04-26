@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
-    service: "letmeapply-pdf-backend"
+    service: "applymatrix-pdf-backend"
   });
 });
 
@@ -152,5 +152,5 @@ app.post("/preview-html", (req, res) => {
 });
 
 app.listen(PORT, HOST, () => {
-  console.log(`[LetMeApply PDF backend] Running at http://${HOST}:${PORT}`);
+  console.log(`[ApplyMatrix PDF backend] Running at http://${HOST}:${PORT}`);
 });

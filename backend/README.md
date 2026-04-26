@@ -1,4 +1,4 @@
-# LetMeApply Local PDF Backend
+# ApplyMatrix Local PDF Backend
 
 This backend generates ATS-friendly resume PDFs locally using Express and Puppeteer.
 

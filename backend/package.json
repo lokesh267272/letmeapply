@@ -1,8 +1,8 @@
 {
-  "name": "letmeapply-pdf-backend",
+  "name": "applymatrix-pdf-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Local Puppeteer PDF backend for LetMeApply",
+  "description": "Local Puppeteer PDF backend for ApplyMatrix",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

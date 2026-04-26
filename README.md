@@ -1,4 +1,4 @@
-# ⚡ LetMeApply – AI Job Application Assistant
+# ⚡ ApplyMatrix – AI Job Application Assistant
 
 A Chrome extension that helps you apply to jobs faster using **Google Gemini AI**.
 
@@ -20,10 +20,10 @@ A Chrome extension that helps you apply to jobs faster using **Google Gemini AI*
 
 ## 🚀 Installation (Chrome)
 
-1. **Download** and extract this `letmeapply-extension` folder
+1. **Download** and extract this `applymatrix-extension` folder
 2. Open Chrome → go to `chrome://extensions/`
 3. Toggle **Developer Mode ON** (top-right corner)
-4. Click **"Load unpacked"** and select the `letmeapply-extension` folder
+4. Click **"Load unpacked"** and select the `applymatrix-extension` folder
 5. The ⚡ icon will appear in your browser toolbar
 
 ## 🔑 Setup
@@ -38,7 +38,7 @@ A Chrome extension that helps you apply to jobs faster using **Google Gemini AI*
 ## 🧑‍💻 How to Use
 
 1. Navigate to any job listing on LinkedIn, Naukri, or Indeed
-2. Click the ⚡ **LetMeApply** icon
+2. Click the ⚡ **ApplyMatrix** icon
 3. The **Job Details** tab auto-fills with extracted data
 4. Switch to **Resume** tab → click "✨ Tailor My Resume"
 5. Switch to **Cover Letter** tab → click "📝 Generate Cover Letter"
@@ -56,7 +56,7 @@ const GEMINI_MODEL = 'gemini-2.0-flash'; // change to 'gemini-1.5-pro', etc.
 ## 📁 File Structure
 
 ```
-letmeapply-extension/
+applymatrix-extension/
 ├── manifest.json          ← Extension config (Manifest V3)
 ├── backend/               ← Local Puppeteer PDF backend
 │   ├── package.json

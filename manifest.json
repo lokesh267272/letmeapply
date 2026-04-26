@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LetMeApply – AI Job Assistant",
+  "name": "ApplyMatrix – AI Job Assistant",
   "version": "1.0.0",
   "description": "AI-powered job application assistant. Extract job details, tailor resumes, generate cover letters, and check ATS scores using Gemini AI.",
   "permissions": [
@@ -18,7 +18,7 @@
     "*://*/*"
   ],
   "action": {
-    "default_title": "LetMeApply",
+    "default_title": "ApplyMatrix",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
