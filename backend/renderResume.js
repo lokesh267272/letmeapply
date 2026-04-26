@@ -90,7 +90,6 @@ function buildResumeHtml(payload = {}) {
       font-weight: 700;
       line-height: 1.2;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
       break-after: avoid-page;
       page-break-after: avoid;
     }
@@ -150,14 +149,13 @@ function buildResumeHtml(payload = {}) {
     }
 
     .bullet-list li::before {
-      content: "";
+      content: "•";
       position: absolute;
       left: -11px;
-      top: 0.56em;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--text);
+      top: 0;
+      color: var(--text);
+      font-size: 10px;
+      line-height: 1.35;
     }
 
     @media screen and (max-width: 640px) {

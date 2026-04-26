@@ -50,7 +50,8 @@ app.post("/generate-pdf", async (req, res) => {
       format: "A4",
       printBackground: true,
       displayHeaderFooter: false,
-      preferCSSPageSize: true
+      preferCSSPageSize: true,
+      tagged: true
     });
     const pdfBuffer = Buffer.from(pdf);
 
@@ -120,7 +121,8 @@ app.post("/generate-cover-letter-pdf", async (req, res) => {
       format: "A4",
       printBackground: true,
       displayHeaderFooter: false,
-      preferCSSPageSize: true
+      preferCSSPageSize: true,
+      tagged: true
     });
     const pdfBuffer = Buffer.from(pdf);
 

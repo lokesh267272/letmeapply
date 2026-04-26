@@ -227,15 +227,15 @@
           ${buildContactLine(resume)}
         </header>
 
-        ${renderSection("Career Objective", summary ? `<p class="objective">${escapeHtml(summary)}</p>` : "")}
-        ${renderSection("Skills", skillsMarkup ? `<ul class="bullet-list">${skillsMarkup}</ul>` : "")}
-        ${renderSection("Education", renderEducation(resume.education))}
-        ${renderSection("Experience", renderExperience(resume.experience))}
-        ${renderSection("Projects", renderProjects(resume.projects))}
-        ${renderSection("Achievements", renderSimpleList(resume.achievements))}
-        ${renderSection("Certifications", renderSimpleList(resume.certifications))}
-        ${renderSection("Languages", renderLanguages(resume.languages))}
-        ${renderSection("Publications", renderSimpleList(resume.publications))}
+        ${renderSection("CAREER OBJECTIVE", summary ? `<p class="objective">${escapeHtml(summary)}</p>` : "")}
+        ${renderSection("SKILLS", skillsMarkup ? `<ul class="bullet-list">${skillsMarkup}</ul>` : "")}
+        ${renderSection("EDUCATION", renderEducation(resume.education))}
+        ${renderSection("EXPERIENCE", renderExperience(resume.experience))}
+        ${renderSection("PROJECTS", renderProjects(resume.projects))}
+        ${renderSection("ACHIEVEMENTS", renderSimpleList(resume.achievements))}
+        ${renderSection("CERTIFICATIONS", renderSimpleList(resume.certifications))}
+        ${renderSection("LANGUAGES", renderLanguages(resume.languages))}
+        ${renderSection("PUBLICATIONS", renderSimpleList(resume.publications))}
       </main>
     `;
   }
