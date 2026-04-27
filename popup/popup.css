@@ -352,10 +352,10 @@ body {
   background: none;
   border: none;
   color: var(--text3);
-  padding: 10px 4px;
+  padding: 10px 2px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 600;
   transition: color 0.2s;
   position: relative;
@@ -1204,6 +1204,180 @@ body {
 }
 
 .language-entry .lang-proficiency:focus {
+  border-color: var(--accent);
+}
+
+/* ── JOB TRACKER ── */
+.tracker-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.tracker-stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-value.green  { color: var(--green); }
+.stat-value.accent { color: var(--accent2); }
+.stat-value.red    { color: var(--red); }
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.tracker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-card-company {
+  font-size: 11.5px;
+  color: var(--accent2);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.app-card-meta {
+  font-size: 10.5px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.status-applied   { background: rgba(124,111,255,0.15); border: 1px solid rgba(124,111,255,0.3);  color: var(--accent2); }
+.status-interview { background: rgba(251,191,36,0.12);  border: 1px solid rgba(251,191,36,0.3);   color: var(--yellow); }
+.status-offer     { background: rgba(52,211,153,0.12);  border: 1px solid rgba(52,211,153,0.3);   color: var(--green); }
+.status-rejected  { background: rgba(248,113,113,0.1);  border: 1px solid rgba(248,113,113,0.25); color: var(--red); }
+
+.app-card-actions {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.status-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.status-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent2);
+  background: var(--accent-glow);
+}
+
+.status-btn.active-status {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+.app-delete-btn {
+  margin-left: auto;
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.2);
+  color: var(--red);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.app-delete-btn:hover {
+  background: rgba(248,113,113,0.2);
+}
+
+.app-notes-input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 11.5px;
+  width: 100%;
+  outline: none;
+  resize: none;
+  min-height: 46px;
+  max-height: 80px;
+  line-height: 1.5;
+}
+
+.app-notes-input:focus {
   border-color: var(--accent);
 }
 

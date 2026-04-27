@@ -139,6 +139,9 @@
         <button class="tab" data-tab="builder">
           <span class="tab-icon">🏗️</span> Build
         </button>
+        <button class="tab" data-tab="tracker">
+          <span class="tab-icon">📋</span> Track
+        </button>
       </div>
 
       <!-- Tab: Job Details -->
@@ -467,6 +470,39 @@
           <button class="btn btn-primary full-width mt-12" id="saveBuilderBtn">
             💾 Save Resume Fields
           </button>
+        </div>
+      </div>
+      <!-- Tab: Application Tracker -->
+      <div class="tab-pane hidden" id="tab-tracker">
+        <div class="tracker-stats">
+          <div class="tracker-stat">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="tracker-stat">
+            <div class="stat-value accent" id="statInterview">0</div>
+            <div class="stat-label">Interview</div>
+          </div>
+          <div class="tracker-stat">
+            <div class="stat-value green" id="statOffer">0</div>
+            <div class="stat-label">Offer</div>
+          </div>
+          <div class="tracker-stat">
+            <div class="stat-value red" id="statRejected">0</div>
+            <div class="stat-label">Rejected</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary full-width" id="logJobBtn">
+          ➕ Log This Job Application
+        </button>
+
+        <div id="trackerList"></div>
+
+        <div class="empty-state hidden" id="trackerEmpty">
+          <div class="empty-icon">📋</div>
+          <p class="empty-title">No Applications Yet</p>
+          <p class="empty-sub">Navigate to a job listing and click "Log This Job Application" to start tracking.</p>
         </div>
       </div>
     </div>

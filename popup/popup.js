@@ -11,6 +11,8 @@ const storageGet = keys => new Promise(resolve => chrome.storage.local.get(keys,
 const storageSet = items => new Promise(resolve => chrome.storage.local.set(items, resolve));
 const TAILORED_PREVIEW_KEY = 'tailoredResumePreview';
 const COVER_LETTER_KEY = 'coverLetterPreview';
+const TRACKER_KEY = 'applicationTracker';
+const TRACKER_STATUSES = ['Applied', 'Interview', 'Offer', 'Rejected'];
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -22,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await restoreTailoredResumeState();
   await restoreCoverLetterState();
   setupResumeBuilder();
+  await loadTrackerTab();
   detectJob();
 });
 
@@ -130,6 +133,7 @@ function setupTabs() {
         pane.classList.remove('hidden');
         pane.classList.add('active');
       }
+      if (targetId === 'tracker') loadTrackerTab();
     });
   });
 }
@@ -315,6 +319,7 @@ function setupActions() {
   $('checkATSBtn').addEventListener('click', () => handleATSScore());
   $('openResumePreviewBtn')?.addEventListener('click', () => openTailoredResumePreview());
   $('openCoverPreviewBtn')?.addEventListener('click', () => openCoverLetterPreview());
+  $('logJobBtn').addEventListener('click', () => logCurrentJob());
 
   const legacyResumeCopyBtn = document.querySelector('#resumeResult .copy-btn[data-target="resumeContent"]');
   if (legacyResumeCopyBtn) legacyResumeCopyBtn.classList.add('hidden');
@@ -396,6 +401,7 @@ async function handleTailorResume() {
     });
 
     renderTailoredResumeReady(previewState);
+    await autoLogJobToTracker();
     await openTailoredResumePreview();
     showToast('✅ Resume tailored successfully!');
   } catch (err) {
@@ -1015,6 +1021,151 @@ function loadBuilderData() {
       $('builderFields').classList.remove('hidden');
     }
   });
+}
+
+// ── APPLICATION TRACKER ──
+
+async function loadTrackerTab() {
+  const data = await storageGet([TRACKER_KEY]);
+  renderTrackerList(data[TRACKER_KEY] || []);
+}
+
+function renderTrackerList(apps) {
+  $('statTotal').textContent     = apps.length;
+  $('statInterview').textContent = apps.filter(a => a.status === 'Interview').length;
+  $('statOffer').textContent     = apps.filter(a => a.status === 'Offer').length;
+  $('statRejected').textContent  = apps.filter(a => a.status === 'Rejected').length;
+
+  const list  = $('trackerList');
+  const empty = $('trackerEmpty');
+  list.innerHTML = '';
+
+  if (!apps.length) {
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'tracker-list';
+  [...apps]
+    .sort((a, b) => b.appliedAt - a.appliedAt)
+    .forEach(app => wrap.appendChild(buildAppCard(app)));
+  list.appendChild(wrap);
+}
+
+function buildAppCard(app) {
+  const card = document.createElement('div');
+  card.className = 'app-card';
+
+  const date        = new Date(app.appliedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const statusClass = `status-${app.status.toLowerCase()}`;
+  const metaParts   = [app.location, date, app.platform].filter(Boolean);
+
+  card.innerHTML = `
+    <div class="app-card-header">
+      <div class="app-card-info">
+        <div class="app-card-title">${esc(app.title || 'Untitled Role')}</div>
+        <div class="app-card-company">${esc(app.company || 'Unknown Company')}</div>
+        <div class="app-card-meta">${esc(metaParts.join(' · '))}</div>
+      </div>
+      <span class="status-badge ${statusClass}">${esc(app.status)}</span>
+    </div>
+    <div class="app-card-actions">
+      ${TRACKER_STATUSES.map(s =>
+        `<button class="status-btn${app.status === s ? ' active-status' : ''}" data-status="${s}">${s}</button>`
+      ).join('')}
+      <button class="app-delete-btn" title="Remove">✕</button>
+    </div>
+    <textarea class="app-notes-input" placeholder="Add notes...">${esc(app.notes || '')}</textarea>`;
+
+  card.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => updateAppStatus(app.id, btn.dataset.status));
+  });
+
+  card.querySelector('.app-delete-btn').addEventListener('click', () => deleteApp(app.id));
+
+  card.querySelector('.app-notes-input').addEventListener('blur', function () {
+    updateAppNotes(app.id, this.value);
+  });
+
+  return card;
+}
+
+async function autoLogJobToTracker() {
+  if (!jobData?.title || !jobData?.description) return;
+
+  const data = await storageGet([TRACKER_KEY]);
+  const apps = data[TRACKER_KEY] || [];
+
+  const isDuplicate = apps.some(a => a.title === jobData.title && a.company === jobData.company);
+  if (isDuplicate) return;
+
+  apps.push({
+    id:        Date.now(),
+    title:     jobData.title    || 'Untitled Role',
+    company:   jobData.company  || 'Unknown Company',
+    location:  jobData.location || '',
+    platform:  jobData.platform || 'Unknown',
+    appliedAt: Date.now(),
+    status:    'Applied',
+    notes:     ''
+  });
+
+  await storageSet({ [TRACKER_KEY]: apps });
+  renderTrackerList(apps);
+}
+
+async function logCurrentJob() {
+  if (!jobData?.title || !jobData?.description) {
+    showToast('⚠️ No job detected — extract a job first');
+    return;
+  }
+
+  const data = await storageGet([TRACKER_KEY]);
+  const apps = data[TRACKER_KEY] || [];
+
+  const isDuplicate = apps.some(a => a.title === jobData.title && a.company === jobData.company);
+  if (isDuplicate) {
+    showToast('⚠️ This job is already in your tracker');
+    return;
+  }
+
+  apps.push({
+    id:        Date.now(),
+    title:     jobData.title     || 'Untitled Role',
+    company:   jobData.company   || 'Unknown Company',
+    location:  jobData.location  || '',
+    platform:  jobData.platform  || 'Unknown',
+    appliedAt: Date.now(),
+    status:    'Applied',
+    notes:     ''
+  });
+
+  await storageSet({ [TRACKER_KEY]: apps });
+  renderTrackerList(apps);
+  showToast('✅ Job logged to tracker!');
+}
+
+async function updateAppStatus(id, newStatus) {
+  const data    = await storageGet([TRACKER_KEY]);
+  const updated = (data[TRACKER_KEY] || []).map(a => a.id === id ? { ...a, status: newStatus } : a);
+  await storageSet({ [TRACKER_KEY]: updated });
+  renderTrackerList(updated);
+}
+
+async function updateAppNotes(id, notes) {
+  const data    = await storageGet([TRACKER_KEY]);
+  const updated = (data[TRACKER_KEY] || []).map(a => a.id === id ? { ...a, notes } : a);
+  await storageSet({ [TRACKER_KEY]: updated });
+}
+
+async function deleteApp(id) {
+  const data    = await storageGet([TRACKER_KEY]);
+  const updated = (data[TRACKER_KEY] || []).filter(a => a.id !== id);
+  await storageSet({ [TRACKER_KEY]: updated });
+  renderTrackerList(updated);
+  showToast('🗑️ Application removed');
 }
 
 function esc(str) {
