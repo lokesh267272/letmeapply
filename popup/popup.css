@@ -853,25 +853,29 @@ body {
 .toast {
   position: fixed;
   bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%) translateY(40px);
+  left: 16px;
+  right: 16px;
+  transform: translateY(40px);
   background: var(--bg3);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 600;
   opacity: 0;
   transition: all 0.3s;
   pointer-events: none;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
+  text-align: center;
   z-index: 100;
 }
 
 .toast.show {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 /* ── RESUME BUILDER ── */
