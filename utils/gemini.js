@@ -484,7 +484,7 @@ STRICT RULES:
  * Check ATS score and return parsed JSON
  */
 async function checkATSScore({ jobDescription, resume }, apiKey) {
-  const prompt = `You are an ATS (Applicant Tracking System) expert analyst.
+  const prompt = `You are an ATS (Applicant Tracking System) expert analyst. Analyze the resume against the job description and return a JSON result.
 
 JOB DESCRIPTION:
 ${jobDescription}
@@ -492,33 +492,70 @@ ${jobDescription}
 CANDIDATE RESUME:
 ${resume}
 
-TASK: Analyze how well this resume matches the job description for ATS systems.
+INSTRUCTIONS — follow these steps exactly:
 
-  Scoring guide:
-  - 80-100: Excellent match
-  - 60-79: Good match
-  - 40-59: Fair match (needs improvement)
-  - 0-39: Poor match (significant gaps)`;
+STEP 1 — KEYWORD EXTRACTION:
+Extract all important keywords from the JOB DESCRIPTION: required skills, technologies, tools, frameworks, programming languages, methodologies, certifications, and domain-specific terms. Aim for 15-30 keywords.
+
+STEP 2 — RESUME MATCHING:
+For each keyword extracted in Step 1, check whether it appears (exactly or as a close synonym) in the CANDIDATE RESUME.
+- matched_keywords: keywords from the job description that ARE present in the resume.
+- missing_keywords: keywords from the job description that are NOT found in the resume. This list must never be empty if any keywords were not found.
+
+STEP 3 — SCORE CALCULATION:
+Compute: score = round((matched_keywords.length / (matched_keywords.length + missing_keywords.length)) * 100)
+This must be an integer between 0 and 100 — never return 0 unless literally no keywords matched.
+
+STEP 4 — GRADE:
+Assign grade based on score:
+- 80-100 → "Excellent"
+- 60-79 → "Good"
+- 40-59 → "Fair"
+- 0-39 → "Poor"
+
+STEP 5 — SUGGESTIONS:
+Write 2-3 specific, actionable sentences on how to improve the resume to better match this job description, referencing the missing keywords.
+
+Return ONLY a valid JSON object with this exact structure — no markdown, no extra text:
+{
+  "score": <integer 0-100>,
+  "grade": "<Excellent|Good|Fair|Poor>",
+  "matched_keywords": ["<keyword>", ...],
+  "missing_keywords": ["<keyword>", ...],
+  "suggestions": "<actionable improvement suggestions>"
+}`;
 
   try {
     const raw = await callGemini(prompt, apiKey, {
-      temperature: 0.2,
+      temperature: 0.1,
       maxOutputTokens: 3072,
       responseMimeType: "application/json",
       responseJsonSchema: ATS_JSON_SCHEMA
     });
 
-    return normalizeATSResult(parseJsonSafely(raw, "Could not parse ATS score response. Please try again."));
+    const parsed = normalizeATSResult(parseJsonSafely(raw, "Could not parse ATS score response. Please try again."));
+    // If score came back as 0 but we have matched keywords, recalculate
+    if (parsed.score === 0 && parsed.matched_keywords.length > 0) {
+      const total = parsed.matched_keywords.length + parsed.missing_keywords.length;
+      parsed.score = total > 0 ? Math.round((parsed.matched_keywords.length / total) * 100) : 0;
+      if (parsed.score >= 80) parsed.grade = "Excellent";
+      else if (parsed.score >= 60) parsed.grade = "Good";
+      else if (parsed.score >= 40) parsed.grade = "Fair";
+      else parsed.grade = "Poor";
+    }
+    return parsed;
   } catch (_) {
     const fallbackPrompt = `${prompt}
 
-Respond with ONLY valid JSON in this exact shape:
+IMPORTANT: The JSON "score" field must be a real calculated integer (not 0 unless truly no keywords matched), and "missing_keywords" must list every job keyword absent from the resume.
+
+Example shape only (use real values, not these placeholders):
 {
-  "score": 0,
-  "grade": "Excellent",
-  "matched_keywords": ["keyword 1"],
-  "missing_keywords": ["keyword 2"],
-  "suggestions": "Short actionable paragraph"
+  "score": 72,
+  "grade": "Good",
+  "matched_keywords": ["Python", "REST API", "Docker"],
+  "missing_keywords": ["Kubernetes", "AWS", "CI/CD"],
+  "suggestions": "Add Kubernetes and AWS experience to your projects section. Mention CI/CD pipeline experience in your bullet points."
 }`;
 
     const raw = await callGemini(fallbackPrompt, apiKey, {
@@ -527,16 +564,25 @@ Respond with ONLY valid JSON in this exact shape:
     });
 
     try {
-      return normalizeATSResult(parseJsonSafely(raw, "Could not parse ATS score response. Please try again."));
+      const parsed = normalizeATSResult(parseJsonSafely(raw, "Could not parse ATS score response. Please try again."));
+      if (parsed.score === 0 && parsed.matched_keywords.length > 0) {
+        const total = parsed.matched_keywords.length + parsed.missing_keywords.length;
+        parsed.score = total > 0 ? Math.round((parsed.matched_keywords.length / total) * 100) : 0;
+        if (parsed.score >= 80) parsed.grade = "Excellent";
+        else if (parsed.score >= 60) parsed.grade = "Good";
+        else if (parsed.score >= 40) parsed.grade = "Fair";
+        else parsed.grade = "Poor";
+      }
+      return parsed;
     } catch (_) {
       const labeledPrompt = `${prompt}
 
-Respond in exactly this plain-text format:
-Score: <0-100>
+Respond in exactly this plain-text format with real computed values:
+Score: <integer 0-100>
 Grade: <Excellent|Good|Fair|Poor>
-Matched Keywords: keyword 1, keyword 2, keyword 3
-Missing Keywords: keyword 4, keyword 5, keyword 6
-Suggestions: <one short actionable paragraph>`;
+Matched Keywords: keyword1, keyword2, keyword3
+Missing Keywords: keyword4, keyword5, keyword6
+Suggestions: <2-3 actionable sentences referencing the missing keywords>`;
 
       const labeledRaw = await callGemini(labeledPrompt, apiKey, {
         temperature: 0.1,
